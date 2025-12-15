@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, MenuItem, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, MenuItem, screen, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -227,14 +227,34 @@ function createTransparentWindow(opts) {
     // Deny new windows
     win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
     
+    // Expose menu function
+    win.openContextMenu = showContextMenu;
+
     return win;
 }
 
 
 ipcMain.on('launch-overlay', (event, data) => {
-    const { url, css, x, y, width, height, zoom, slUrl, slWidth, slHeight } = data;
+    const { url, css, x, y, width, height, zoom, menuShortcut, slUrl, slWidth, slHeight } = data;
     
     saveConfig(data);
+
+    // Register global shortcut
+    globalShortcut.unregisterAll(); // Clear previous
+    if (menuShortcut) {
+        try {
+            const ret = globalShortcut.register(menuShortcut, () => {
+                if (overlayWindow && !overlayWindow.isDestroyed()) {
+                    overlayWindow.openContextMenu();
+                }
+            });
+            if (!ret) {
+                console.error('Registration failed for shortcut:', menuShortcut);
+            }
+        } catch (err) {
+            console.error('Error registering shortcut:', err);
+        }
+    }
 
     // --- Chat Overlay ---
     const embedUrl = getEmbedUrl(url);
@@ -298,6 +318,10 @@ app.whenReady().then(() => {
             createConfigWindow();
         }
     });
+});
+
+app.on('will-quit', () => {
+    globalShortcut.unregisterAll();
 });
 
 app.on('window-all-closed', () => {

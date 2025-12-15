@@ -153,6 +153,32 @@ ipcMain.on('trim-resize', (event, { x, y, width, height }) => {
     }
 });
 
+ipcMain.on('request-toggle-click-through', (event) => {
+    const senderWindow = BrowserWindow.fromWebContents(event.sender);
+    if (senderWindow) {
+        // Toggle ignore mouse events.
+        // We need to know current state. We can store it on the window object or toggle.
+        // Electron doesn't have a getter for ignoreMouseEvents state easily.
+        // Let's assume default is TRUE (click-through).
+
+        // However, we just came from a menu click, which temporarily disabled it.
+        // The menu's `menu-will-close` handler re-enables it to TRUE after 100ms.
+
+        // If the user clicked "Toggle Click-Through", they want to FLIP the persistent state.
+
+        const currentState = senderWindow._clickThrough !== false; // Default true
+        const newState = !currentState;
+        senderWindow._clickThrough = newState;
+
+        // Apply new state
+        senderWindow.setIgnoreMouseEvents(newState, { forward: true });
+
+        // IMPORTANT: The menu close handler will try to set it to TRUE.
+        // We need to override or update that logic.
+        // But the menu logic is inside createTransparentWindow.
+    }
+});
+
 // Helper to create transparent window
 // Helper to create transparent window
 // Helper to create transparent window
@@ -175,6 +201,7 @@ function createTransparentWindow(opts) {
     
     // CRITICAL: Enable click-through by default
     win.setIgnoreMouseEvents(true, { forward: true });
+    win._clickThrough = true; // Track state
 
     win.on('closed', () => {
         // Handled by caller
@@ -207,11 +234,13 @@ function createTransparentWindow(opts) {
         
         menu.popup({ window: win });
         
-        // Re-enable click-through after menu closes
+        // Restore state after menu closes
         menu.on('menu-will-close', () => {
             setTimeout(() => {
                 if (!win.isDestroyed()) {
-                    win.setIgnoreMouseEvents(true, { forward: true });
+                    // Restore to what it was supposed to be
+                    const shouldIgnore = win._clickThrough !== false;
+                    win.setIgnoreMouseEvents(shouldIgnore, { forward: true });
                 }
             }, 100);
         });

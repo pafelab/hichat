@@ -296,6 +296,26 @@ function startResize(e, pos) {
     document.addEventListener('mouseup', onMouseUp);
 }
 
+// IPC Listeners from Menu
+ipcRenderer.on('toggle-transform', () => toggleTransform(!transformMode));
+ipcRenderer.on('toggle-trim', () => toggleTrim(!trimMode));
+
+ipcRenderer.on('reset-trim', () => {
+    cropValues = { top: 0, right: 0, bottom: 0, left: 0 };
+    const trimWrapper = document.getElementById('trim-content-wrapper');
+    if (trimWrapper) {
+        trimWrapper.style.setProperty('transform', 'translate(0px, 0px)', 'important');
+    }
+});
+
+ipcRenderer.on('toggle-click-through', () => {
+    // We need to ask main process to toggle the window state
+    // But since main sent this to us, it expects us to handle it or bounce it back with state?
+    // Let's assume we maintain the state here or just ask main to toggle.
+    // For simplicity, let's send a message to main to toggle.
+    ipcRenderer.send('request-toggle-click-through');
+});
+
 // Trim Logic
 function setupTrimEvents() {
     const handles = document.querySelectorAll('.trim-handle');

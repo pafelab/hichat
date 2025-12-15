@@ -6,6 +6,7 @@ document.getElementById('launch').addEventListener('click', () => {
     const width = parseInt(document.getElementById('width').value) || 400;
     const height = parseInt(document.getElementById('height').value) || 600;
     const zoom = parseFloat(document.getElementById('zoom').value) || 1.0;
+    const menuShortcut = document.getElementById('menu-shortcut').value || 'Shift+F1';
 
     // Streamlabs inputs
     const slUrl = document.getElementById('sl-url').value;
@@ -18,7 +19,7 @@ document.getElementById('launch').addEventListener('click', () => {
     }
 
     window.api.send('launch-overlay', { 
-        url, css, x, y, width, height, zoom,
+        url, css, x, y, width, height, zoom, menuShortcut,
         slUrl, slWidth, slHeight
     });
     document.getElementById('status').innerText = 'Overlay launched!';
@@ -40,6 +41,7 @@ window.api.on('load-settings', (settings) => {
         document.getElementById('zoom').value = settings.zoom;
         document.getElementById('zoom-val').innerText = settings.zoom;
     }
+    if (settings.menuShortcut) document.getElementById('menu-shortcut').value = settings.menuShortcut;
     // Streamlabs Load
     if (settings.slUrl) document.getElementById('sl-url').value = settings.slUrl;
     if (settings.slWidth) document.getElementById('sl-width').value = settings.slWidth;

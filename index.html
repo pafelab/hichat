@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ตั้งค่า Chat Overlay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #36393f;
+            --bg-secondary: #2f3136;
+            --bg-tertiary: #202225;
+            --accent: #5865F2;
+            --accent-hover: #4752c4;
+            --text-normal: #dcddde;
+            --text-muted: #72767d;
+            --header-primary: #fff;
+            --input-bg: #40444b;
+            --border-color: #202225;
+        }
+
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            padding: 20px; 
+            background-color: var(--bg-primary); 
+            color: var(--text-normal);
+            margin: 0;
+        }
+
+        h1 { 
+            color: var(--header-primary); 
+            margin-bottom: 20px; 
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        h2 { 
+            border-bottom: 1px solid var(--border-color); 
+            padding-bottom: 10px; 
+            margin-top: 30px; 
+            margin-bottom: 15px;
+            font-size: 16px; 
+            color: var(--text-muted); 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            color: var(--text-normal);
+            font-size: 14px;
+        }
+
+        input[type="text"], 
+        input[type="number"], 
+        textarea { 
+            width: 100%; 
+            padding: 10px; 
+            box-sizing: border-box; 
+            background-color: var(--input-bg);
+            border: 1px solid transparent; 
+            border-radius: 4px; 
+            color: var(--text-normal);
+            font-family: 'Sarabun', sans-serif;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        textarea { 
+            height: 100px; 
+            font-family: monospace; 
+        }
+
+        small { 
+            color: var(--text-muted); 
+            display: block; 
+            margin-top: 5px; 
+            font-size: 12px;
+        }
+
+        button { 
+            padding: 12px 24px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            background-color: var(--accent); 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            transition: background 0.2s; 
+            font-weight: 600;
+            width: 100%;
+        }
+
+        button:hover { background-color: var(--accent-hover); }
+
+        .row { display: flex; gap: 15px; }
+        .col { flex: 1; }
+
+        #status { 
+            margin-top: 15px; 
+            font-weight: bold; 
+            color: #43b581; /* Discord Green */
+            text-align: center;
+        }
+
+        /* Range Slider Styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: var(--header-primary);
+            cursor: pointer;
+            margin-top: -6px;
+        }
+        
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: var(--input-bg);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ตั้งค่า Chat Overlay</h1>
+    
+    <h2>การตั้งค่าแชท (Chat Settings)</h2>
+    <div class="form-group">
+        <label for="url">ลิ้งก์ YouTube/Twitch (URL):</label>
+        <input type="text" id="url" placeholder="https://www.youtube.com/watch?v=..." value="https://www.youtube.com/watch?v=jfKfPfyJRdk">
+        <small>วางลิ้งก์เต็มของวิดีโอหรือสตรีมที่นี่</small>
+    </div>
+
+    <div class="row">
+        <div class="col form-group">
+            <label for="x">ตำแหน่ง X:</label>
+            <input type="number" id="x" value="50">
+        </div>
+        <div class="col form-group">
+            <label for="y">ตำแหน่ง Y:</label>
+            <input type="number" id="y" value="50">
+        </div>
+        <div class="col form-group">
+            <label for="width">ความกว้าง (Width):</label>
+            <input type="number" id="width" value="400">
+        </div>
+        <div class="col form-group">
+            <label for="height">ความสูง (Height):</label>
+            <input type="number" id="height" value="600">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="zoom">ระดับการซูม (Zoom Level): <span id="zoom-val">1.0</span></label>
+        <input type="range" id="zoom" min="0.5" max="2.0" step="0.1" value="1.0">
+    </div>
+
+    <div class="form-group">
+        <label for="css">CSS ปรับแต่งเอง (Custom CSS):</label>
+        <textarea id="css" placeholder="body { background-color: rgba(0,0,0,0.5); }">
+/* ทำให้พื้นหลังโปร่งใส */
+body { background-color: transparent !important; }
+yt-live-chat-renderer { background-color: transparent !important; }
+/* ตัวอย่าง: ตัวหนังสือสีขาว ขอบดำ */
+yt-live-chat-text-message-renderer {
+    color: white !important;
+    text-shadow: 1px 1px 2px black;
+}
+/* ซ่อนช่องพิมพ์ข้อความ */
+yt-live-chat-message-input-renderer {
+    display: none !important;
+}
+</textarea>
+    </div>
+
+    <h2>การตั้งค่า Streamlabs (Streamlabs Settings)</h2>
+    <div class="form-group">
+        <label for="sl-url">Streamlabs Widget URL / API Key:</label>
+        <input type="text" id="sl-url" placeholder="https://streamlabs.com/alert-box/v3/..." value="">
+        <small>ใส Widget URL จาก Alert Box Settings หรือ API Token</small>
+    </div>
+    
+    <div class="row">
+        <div class="col form-group">
+            <label for="sl-width">ความกว้าง (Width):</label>
+            <input type="number" id="sl-width" value="600">
+        </div>
+        <div class="col form-group">
+            <label for="sl-height">ความสูง (Height):</label>
+            <input type="number" id="sl-height" value="400">
+        </div>
+    </div>
+
+    <button id="launch">เริ่มใช้งาน (Launch Overlay)</button>
+    <div id="status"></div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

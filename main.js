@@ -179,6 +179,20 @@ ipcMain.on('request-toggle-click-through', (event) => {
     }
 });
 
+ipcMain.on('set-input-mode', (event, active) => {
+    const senderWindow = BrowserWindow.fromWebContents(event.sender);
+    if (senderWindow) {
+        senderWindow._modeActive = active;
+        if (active) {
+            senderWindow.setIgnoreMouseEvents(false);
+        } else {
+            // Restore based on _clickThrough state
+            const shouldIgnore = senderWindow._clickThrough !== false;
+            senderWindow.setIgnoreMouseEvents(shouldIgnore, { forward: true });
+        }
+    }
+});
+
 // Helper to create transparent window
 // Helper to create transparent window
 // Helper to create transparent window
@@ -238,6 +252,9 @@ function createTransparentWindow(opts) {
         menu.on('menu-will-close', () => {
             setTimeout(() => {
                 if (!win.isDestroyed()) {
+                    // If a specific mode (trim/transform) is active, keep it interactive
+                    if (win._modeActive) return;
+
                     // Restore to what it was supposed to be
                     const shouldIgnore = win._clickThrough !== false;
                     win.setIgnoreMouseEvents(shouldIgnore, { forward: true });

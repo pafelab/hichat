@@ -184,6 +184,10 @@ function removeTrimUI() {
 function toggleTransform(active) {
     if (trimMode && active) toggleTrim(false); // Exclusive modes
     transformMode = active;
+
+    // Notify main process to enable/disable interaction
+    ipcRenderer.send('set-input-mode', active);
+
     if (active) createTransformUI();
     else removeTransformUI();
 }
@@ -191,6 +195,9 @@ function toggleTransform(active) {
 function toggleTrim(active) {
     if (transformMode && active) toggleTransform(false); // Exclusive modes
     
+    // Notify main process to enable/disable interaction
+    ipcRenderer.send('set-input-mode', active);
+
     // Logic for initializing trim state is inside createTrimUI to handle toggling
     if (active) {
         trimMode = true;

@@ -1,5 +1,5 @@
 {
-  "name": "chat-overlay",
+  "name": "@pafelab/hichat",
   "version": "1.0.0",
   "description": "YouTube/Twitch Chat Overlay",
   "main": "main.js",

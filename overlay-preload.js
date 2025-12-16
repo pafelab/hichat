@@ -67,34 +67,52 @@ const overlayStyles = `
         width: 100%;
         height: 100%;
         box-sizing: border-box;
-        border: 4px dashed #00ff00; /* Green for Trim */
+        border: 2px solid #ff0000; /* Red for Trim */
         z-index: 99999;
         pointer-events: none;
     }
 
     .trim-handle {
         position: absolute;
-        background-color: #00ff00;
         pointer-events: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Common style for the visual square anchor */
+    .trim-handle::after {
+        content: '';
+        display: block;
+        width: 10px;
+        height: 10px;
+        background-color: #ff0000;
+        border: 1px solid white;
+        box-shadow: 0 0 2px black;
     }
     
-    /* Side handles for cropping */
-    .trim-handle.n { top: -5px; left: 0; width: 100%; height: 10px; cursor: ns-resize; }
-    .trim-handle.s { bottom: -5px; left: 0; width: 100%; height: 10px; cursor: ns-resize; }
-    .trim-handle.w { left: -5px; top: 0; width: 10px; height: 100%; cursor: ew-resize; }
-    .trim-handle.e { right: -5px; top: 0; width: 10px; height: 100%; cursor: ew-resize; }
+    /* Side handles for cropping (Hit areas + Anchors) */
+    .trim-handle.n { top: -6px; left: 0; width: 100%; height: 12px; cursor: ns-resize; }
+    .trim-handle.s { bottom: -6px; left: 0; width: 100%; height: 12px; cursor: ns-resize; }
+    .trim-handle.w { left: -6px; top: 0; width: 12px; height: 100%; cursor: ew-resize; }
+    .trim-handle.e { right: -6px; top: 0; width: 12px; height: 100%; cursor: ew-resize; }
 
     /* Corner handles for trim */
-    .trim-handle.nw { top: -10px; left: -10px; width: 20px; height: 20px; cursor: nwse-resize; z-index: 10; }
-    .trim-handle.ne { top: -10px; right: -10px; width: 20px; height: 20px; cursor: nesw-resize; z-index: 10; }
-    .trim-handle.sw { bottom: -10px; left: -10px; width: 20px; height: 20px; cursor: nesw-resize; z-index: 10; }
-    .trim-handle.se { bottom: -10px; right: -10px; width: 20px; height: 20px; cursor: nwse-resize; z-index: 10; }
+    .trim-handle.nw { top: -6px; left: -6px; width: 12px; height: 12px; cursor: nwse-resize; z-index: 10; }
+    .trim-handle.ne { top: -6px; right: -6px; width: 12px; height: 12px; cursor: nesw-resize; z-index: 10; }
+    .trim-handle.sw { bottom: -6px; left: -6px; width: 12px; height: 12px; cursor: nesw-resize; z-index: 10; }
+    .trim-handle.se { bottom: -6px; right: -6px; width: 12px; height: 12px; cursor: nwse-resize; z-index: 10; }
+
+    /* Corner handles are already small squares, so ::after fills them */
+    .trim-handle.nw::after, .trim-handle.ne::after, .trim-handle.sw::after, .trim-handle.se::after {
+        width: 100%; height: 100%;
+    }
 
     #trim-close {
         position: absolute;
         top: 5px;
         right: 5px;
-        background: #00aa00;
+        background: #cc0000;
         color: white;
         border: none;
         padding: 5px 10px;

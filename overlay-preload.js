@@ -479,7 +479,9 @@ function startTrim(e, pos) {
         }
 
         // Apply permanent CSS transform
-        document.body.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
+        if (trimWrapper) {
+            trimWrapper.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
+        }
 
         // Send Resize Command
         if (trimUpdate.width !== 0 || trimUpdate.height !== 0 || trimUpdate.x !== 0 || trimUpdate.y !== 0) {

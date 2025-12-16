@@ -6,7 +6,7 @@ document.getElementById('launch').addEventListener('click', () => {
     const width = parseInt(document.getElementById('width').value) || 400;
     const height = parseInt(document.getElementById('height').value) || 600;
     const zoom = parseFloat(document.getElementById('zoom').value) || 1.0;
-    const menuShortcut = document.getElementById('menu-shortcut').value || 'Shift+F1';
+    const menuShortcut = (document.getElementById('menu-shortcut').value || 'Shift+F1').trim();
 
     // Streamlabs inputs
     const slUrl = document.getElementById('sl-url').value;

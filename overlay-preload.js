@@ -345,58 +345,128 @@ function startTrim(e, pos) {
     let startX = e.screenX;
     let startY = e.screenY;
     
-    // Get current zoom factor to correct CSS translations
+    // Accumulate deltas during drag
+    let totalDeltaX = 0;
+    let totalDeltaY = 0;
+
     const scale = webFrame.getZoomFactor();
+    const trimOverlay = document.getElementById('trim-overlay');
+    const trimWrapper = document.getElementById('trim-content-wrapper');
+
+    // Capture starting rect for UI feedback
+    const startRect = trimOverlay.getBoundingClientRect(); // relative to viewport
+    // Since overlay is fixed 100% size, startRect usually matches window size (0,0, w, h)
 
     const onMouseMove = (ev) => {
         const deltaX = ev.screenX - startX;
         const deltaY = ev.screenY - startY;
 
-        // We calculate delta to apply to crop
-        let trimUpdate = { x: 0, y: 0, width: 0, height: 0 };
-        let updateCSS = false;
+        // We only accumulate delta, do not send IPC yet
+        totalDeltaX = deltaX;
+        totalDeltaY = deltaY;
 
-        // Helper for Left logic
+        // Calculate temporary visual adjustments
+        let uiTop = 0;
+        let uiLeft = 0;
+        let uiWidth = startRect.width;
+        let uiHeight = startRect.height;
+
+        let clipTop = 0;
+        let clipRight = 0;
+        let clipBottom = 0;
+        let clipLeft = 0;
+
+        // Visual Feedback Logic
         if (pos.includes('w')) {
-            cropValues.left += (deltaX / scale);
-            trimUpdate.x = deltaX;
-            trimUpdate.width += -deltaX;
-            updateCSS = true;
+            // Dragging Left Handle:
+            // UI moves Right (+delta), Width shrinks (-delta)
+            // Clip Left increases (+delta/scale)
+            uiLeft += deltaX / scale; // CSS pixels
+            uiWidth -= deltaX / scale;
+            clipLeft = deltaX / scale;
         }
-        
-        // Helper for Right logic
         if (pos.includes('e')) {
-            cropValues.right -= (deltaX / scale);
-            trimUpdate.width += deltaX;
+            uiWidth += deltaX / scale;
+            clipRight = -deltaX / scale; // Dragging left (-x) means crop from right (+val)? No.
+            // Drag Right (+x) = Increase Width. Clip should be negative (grow)? Or we just resizing window?
+            // "Crop" usually means shrinking.
+            // If dragging Right Handle RIGHT (+x): Window grows. No crop.
+            // If dragging Right Handle LEFT (-x): Window shrinks. Crop Right.
+            // So clipRight should be -deltaX/scale (if deltaX is -10, clip is 10).
         }
-
-        // Helper for Top logic
         if (pos.includes('n')) {
-            cropValues.top += (deltaY / scale);
-            trimUpdate.y = deltaY;
-            trimUpdate.height += -deltaY;
-            updateCSS = true;
+            uiTop += deltaY / scale;
+            uiHeight -= deltaY / scale;
+            clipTop = deltaY / scale;
         }
-
-        // Helper for Bottom logic
         if (pos.includes('s')) {
-            // cropValues.bottom -= (deltaY / scale); // Logic doesn't use bottom val for transform, but we could track it
-            trimUpdate.height += deltaY;
+            uiHeight += deltaY / scale;
+            clipBottom = -deltaY / scale;
         }
 
-        if (updateCSS) {
-            document.body.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
-        }
+        // Apply UI Feedback (The Green Box)
+        // We need to set it relative to the window (viewport)
+        trimOverlay.style.top = `${uiTop}px`;
+        trimOverlay.style.left = `${uiLeft}px`;
+        trimOverlay.style.width = `${uiWidth}px`;
+        trimOverlay.style.height = `${uiHeight}px`;
 
-        ipcRenderer.send('trim-resize', trimUpdate);
-
-        startX = ev.screenX;
-        startY = ev.screenY;
+        // Apply Content Masking (Preview)
+        // clip-path: inset(top right bottom left)
+        // Note: clip-path is applied to the wrapper.
+        // We use Math.max(0, ...) to ensure we don't un-crop past 0 during preview?
+        // Or do we allow expanding? If expanding, inset is negative? inset supports negative?
+        // Usually inset clamps to border box.
+        // Let's assume user is cropping IN.
+        trimWrapper.style.clipPath = `inset(${clipTop}px ${-clipRight}px ${-clipBottom}px ${clipLeft}px)`;
     };
 
-    const onMouseUp = () => {
+    const onMouseUp = (ev) => {
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', onMouseUp);
+
+        // Reset UI previews
+        trimOverlay.style.top = '0';
+        trimOverlay.style.left = '0';
+        trimOverlay.style.width = '100%';
+        trimOverlay.style.height = '100%';
+        trimWrapper.style.clipPath = '';
+
+        // Calculate Final Commit Values
+        // We use the LAST event's accumulated delta?
+        // No, totalDelta is from StartX.
+        // Screen coords:
+        const finalDeltaX = totalDeltaX;
+        const finalDeltaY = totalDeltaY;
+
+        let trimUpdate = { x: 0, y: 0, width: 0, height: 0 };
+
+        // Logic must match the visual feedback
+        if (pos.includes('w')) {
+            cropValues.left += (finalDeltaX / scale);
+            trimUpdate.x = finalDeltaX;
+            trimUpdate.width += -finalDeltaX;
+        }
+        if (pos.includes('e')) {
+            cropValues.right -= (finalDeltaX / scale);
+            trimUpdate.width += finalDeltaX;
+        }
+        if (pos.includes('n')) {
+            cropValues.top += (finalDeltaY / scale);
+            trimUpdate.y = finalDeltaY;
+            trimUpdate.height += -finalDeltaY;
+        }
+        if (pos.includes('s')) {
+            trimUpdate.height += finalDeltaY;
+        }
+
+        // Apply permanent CSS transform
+        document.body.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
+
+        // Send Resize Command
+        if (trimUpdate.width !== 0 || trimUpdate.height !== 0 || trimUpdate.x !== 0 || trimUpdate.y !== 0) {
+            ipcRenderer.send('trim-resize', trimUpdate);
+        }
     };
 
     document.addEventListener('mousemove', onMouseMove);

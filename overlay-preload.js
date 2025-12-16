@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, webFrame } = require('electron');
 
 let transformMode = false;
 let trimMode = false;
@@ -84,6 +84,12 @@ const overlayStyles = `
     .trim-handle.w { left: -5px; top: 0; width: 10px; height: 100%; cursor: ew-resize; }
     .trim-handle.e { right: -5px; top: 0; width: 10px; height: 100%; cursor: ew-resize; }
 
+    /* Corner handles for trim */
+    .trim-handle.nw { top: -10px; left: -10px; width: 20px; height: 20px; cursor: nwse-resize; z-index: 10; }
+    .trim-handle.ne { top: -10px; right: -10px; width: 20px; height: 20px; cursor: nesw-resize; z-index: 10; }
+    .trim-handle.sw { bottom: -10px; left: -10px; width: 20px; height: 20px; cursor: nesw-resize; z-index: 10; }
+    .trim-handle.se { bottom: -10px; right: -10px; width: 20px; height: 20px; cursor: nwse-resize; z-index: 10; }
+
     #trim-close {
         position: absolute;
         top: 5px;
@@ -145,7 +151,7 @@ function createTrimUI() {
     const trimOverlay = document.createElement('div');
     trimOverlay.id = 'trim-overlay';
 
-    ['n', 's', 'e', 'w'].forEach(pos => {
+    ['n', 's', 'e', 'w', 'nw', 'ne', 'sw', 'se'].forEach(pos => {
         const handle = document.createElement('div');
         handle.className = `trim-handle ${pos}`;
         handle.dataset.pos = pos;
@@ -339,37 +345,47 @@ function startTrim(e, pos) {
     let startX = e.screenX;
     let startY = e.screenY;
     
+    // Get current zoom factor to correct CSS translations
+    const scale = webFrame.getZoomFactor();
+
     const onMouseMove = (ev) => {
         const deltaX = ev.screenX - startX;
         const deltaY = ev.screenY - startY;
 
-        // Logic:
-        // If 'w' (left handle):
-        //   Dragging Right (+x): Crop Left increases. Window X increases. Window Width decreases.
-        //   Dragging Left (-x): Crop Left decreases. Window X decreases. Window Width increases.
-        // If 'e' (right handle):
-        //   Dragging Right (+x): Window Width increases.
-        //   Dragging Left (-x): Window Width decreases.
-        
         // We calculate delta to apply to crop
         let trimUpdate = { x: 0, y: 0, width: 0, height: 0 };
+        let updateCSS = false;
+
+        // Helper for Left logic
+        if (pos.includes('w')) {
+            cropValues.left += (deltaX / scale);
+            trimUpdate.x = deltaX;
+            trimUpdate.width += -deltaX;
+            updateCSS = true;
+        }
         
-        if (pos === 'w') {
-            cropValues.left += deltaX;
-            trimUpdate.x = deltaX; // Move window right
-            trimUpdate.width = -deltaX; // Shrink window
+        // Helper for Right logic
+        if (pos.includes('e')) {
+            cropValues.right -= (deltaX / scale);
+            trimUpdate.width += deltaX;
+        }
+
+        // Helper for Top logic
+        if (pos.includes('n')) {
+            cropValues.top += (deltaY / scale);
+            trimUpdate.y = deltaY;
+            trimUpdate.height += -deltaY;
+            updateCSS = true;
+        }
+
+        // Helper for Bottom logic
+        if (pos.includes('s')) {
+            // cropValues.bottom -= (deltaY / scale); // Logic doesn't use bottom val for transform, but we could track it
+            trimUpdate.height += deltaY;
+        }
+
+        if (updateCSS) {
             document.body.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
-        } else if (pos === 'e') {
-            cropValues.right -= deltaX; 
-            trimUpdate.width = deltaX;
-            // No content shift needed for right edge
-        } else if (pos === 'n') {
-            cropValues.top += deltaY;
-            trimUpdate.y = deltaY; // Move window down
-            trimUpdate.height = -deltaY; // Shrink window
-            document.body.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
-        } else if (pos === 's') {
-            trimUpdate.height = deltaY;
         }
 
         ipcRenderer.send('trim-resize', trimUpdate);

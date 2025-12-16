@@ -47,3 +47,66 @@ window.api.on('load-settings', (settings) => {
     if (settings.slWidth) document.getElementById('sl-width').value = settings.slWidth;
     if (settings.slHeight) document.getElementById('sl-height').value = settings.slHeight;
 });
+
+// Templates
+const YOUTUBE_CSS = `/* YouTube Chat Clean Style */
+body { background-color: transparent !important; }
+yt-live-chat-renderer { background-color: transparent !important; }
+
+/* Hide Header & Footer */
+yt-live-chat-header-renderer,
+yt-live-chat-message-input-renderer,
+yt-live-chat-ticker-renderer {
+    display: none !important;
+}
+
+/* Chat Messages */
+yt-live-chat-text-message-renderer {
+    font-family: 'Sarabun', sans-serif;
+    font-size: 24px !important;
+    line-height: 1.5;
+    text-shadow: 2px 2px 4px #000000;
+}
+
+/* Author Name */
+#author-name {
+    color: #ffeb3b !important;
+    font-weight: bold;
+}
+
+/* Hide Avatars (Optional - uncomment to hide) */
+/* #img { display: none !important; } */
+`;
+
+const TWITCH_CSS = `/* Twitch Chat Clean Style */
+body { background-color: transparent !important; }
+.chat-room { background: transparent !important; }
+
+/* Hide Header & Input */
+.stream-chat-header,
+.chat-input,
+.chat-input-tray {
+    display: none !important;
+}
+
+/* Messages */
+.chat-line__message {
+    background: transparent !important;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 20px !important;
+    text-shadow: 1px 1px 2px black;
+    color: white !important;
+}
+`;
+
+document.getElementById('btn-preset-youtube').addEventListener('click', () => {
+    document.getElementById('css').value = YOUTUBE_CSS;
+});
+
+document.getElementById('btn-preset-twitch').addEventListener('click', () => {
+    document.getElementById('css').value = TWITCH_CSS;
+});
+
+document.getElementById('btn-preset-clear').addEventListener('click', () => {
+    document.getElementById('css').value = '';
+});

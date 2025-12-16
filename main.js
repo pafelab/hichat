@@ -223,33 +223,18 @@ function createTransparentWindow(opts) {
 
     // Function to show context menu
     const showContextMenu = () => {
-        // Temporarily disable click-through
+        // Temporarily disable click-through so user can interact with the menu
         win.setIgnoreMouseEvents(false);
-        
-        const menu = new Menu();
-        menu.append(new MenuItem({
-            label: 'Transform (Resize Window) - Press T',
-            click: () => win.webContents.send('toggle-transform')
-        }));
-        menu.append(new MenuItem({
-            label: 'Trim (Crop Edges) - Press C',
-            click: () => win.webContents.send('toggle-trim')
-        }));
-        menu.append(new MenuItem({ type: 'separator' }));
-        menu.append(new MenuItem({
-            label: 'Reset Trim - Press R',
-            click: () => win.webContents.send('reset-trim')
-        }));
-        menu.append(new MenuItem({ type: 'separator' }));
-        menu.append(new MenuItem({
-            label: 'Toggle Click-Through - Press Space',
-            click: () => win.webContents.send('toggle-click-through')
-        }));
-        
-        menu.popup({ window: win });
-        
-        // Restore state after menu closes
-        menu.on('menu-will-close', () => {
+        // Send signal to renderer to show the custom HTML menu
+        win.webContents.send('toggle-menu');
+    };
+
+    // Listen for show-menu event from renderer
+    win.webContents.on('ipc-message', (event, channel) => {
+        if (channel === 'show-context-menu') {
+            showContextMenu();
+        }
+        if (channel === 'menu-closed') {
             setTimeout(() => {
                 if (!win.isDestroyed()) {
                     // If a specific mode (trim/transform) is active, keep it interactive
@@ -260,13 +245,6 @@ function createTransparentWindow(opts) {
                     win.setIgnoreMouseEvents(shouldIgnore, { forward: true });
                 }
             }, 100);
-        });
-    };
-
-    // Listen for show-menu event from renderer
-    win.webContents.on('ipc-message', (event, channel) => {
-        if (channel === 'show-context-menu') {
-            showContextMenu();
         }
     });
 

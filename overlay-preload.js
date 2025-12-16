@@ -120,6 +120,169 @@ const overlayStyles = `
         font-weight: bold;
         pointer-events: auto;
     }
+
+    /* Radial Menu Styles */
+    .menu-item,
+    .menu-open-button {
+      background: #EEEEEE;
+      border-radius: 100%;
+      width: 80px;
+      height: 80px;
+      margin-left: -40px;
+      position: absolute;
+      color: #FFFFFF;
+      text-align: center;
+      line-height: 80px;
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+      -webkit-transition: -webkit-transform ease-out 200ms;
+      transition: -webkit-transform ease-out 200ms;
+      transition: transform ease-out 200ms;
+      pointer-events: auto;
+    }
+
+    .menu-open {
+      display: none;
+    }
+
+    .lines {
+      width: 25px;
+      height: 3px;
+      background: #596778;
+      display: block;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin-left: -12.5px;
+      margin-top: -1.5px;
+      -webkit-transition: -webkit-transform 200ms;
+      transition: -webkit-transform 200ms;
+      transition: transform 200ms;
+    }
+
+    .line-1 {
+      -webkit-transform: translate3d(0, -8px, 0);
+      transform: translate3d(0, -8px, 0);
+    }
+
+    .line-2 {
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+    }
+
+    .line-3 {
+      -webkit-transform: translate3d(0, 8px, 0);
+      transform: translate3d(0, 8px, 0);
+    }
+
+    .menu-open:checked + .menu-open-button .line-1 {
+      -webkit-transform: translate3d(0, 0, 0) rotate(45deg);
+      transform: translate3d(0, 0, 0) rotate(45deg);
+    }
+
+    .menu-open:checked + .menu-open-button .line-2 {
+      -webkit-transform: translate3d(0, 0, 0) scale(0.1, 1);
+      transform: translate3d(0, 0, 0) scale(0.1, 1);
+    }
+
+    .menu-open:checked + .menu-open-button .line-3 {
+      -webkit-transform: translate3d(0, 0, 0) rotate(-45deg);
+      transform: translate3d(0, 0, 0) rotate(-45deg);
+    }
+
+    .radial-menu {
+      margin: auto;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 80px;
+      height: 80px;
+      text-align: center;
+      box-sizing: border-box;
+      font-size: 26px;
+      z-index: 100000;
+      pointer-events: none;
+    }
+
+    .menu-item:hover {
+      background: #EEEEEE;
+      color: #3290B1;
+    }
+
+    .menu-item:nth-child(3) { transition-duration: 180ms; }
+    .menu-item:nth-child(4) { transition-duration: 180ms; }
+    .menu-item:nth-child(5) { transition-duration: 180ms; }
+    .menu-item:nth-child(6) { transition-duration: 180ms; }
+    .menu-item:nth-child(7) { transition-duration: 180ms; }
+    .menu-item:nth-child(8) { transition-duration: 180ms; }
+
+    .menu-open-button {
+      z-index: 2;
+      transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transition-duration: 400ms;
+      transform: scale(1.1, 1.1) translate3d(0, 0, 0);
+      cursor: pointer;
+      box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14);
+    }
+
+    .menu-open-button:hover {
+      transform: scale(1.2, 1.2) translate3d(0, 0, 0);
+    }
+
+    .menu-open:checked + .menu-open-button {
+      transition-timing-function: linear;
+      transition-duration: 200ms;
+      transform: scale(0.8, 0.8) translate3d(0, 0, 0);
+    }
+
+    .menu-open:checked ~ .menu-item {
+      transition-timing-function: cubic-bezier(0.935, 0, 0.34, 1.33);
+    }
+
+    .menu-open:checked ~ .menu-item:nth-child(3) {
+      transition-duration: 180ms;
+      transform: translate3d(0.08361px, -104.99997px, 0);
+    }
+
+    .menu-open:checked ~ .menu-item:nth-child(4) {
+      transition-duration: 280ms;
+      transform: translate3d(90.9466px, -52.47586px, 0);
+    }
+
+    .menu-open:checked ~ .menu-item:nth-child(5) {
+      transition-duration: 380ms;
+      transform: translate3d(90.9466px, 52.47586px, 0);
+    }
+
+    .menu-open:checked ~ .menu-item:nth-child(6) {
+      transition-duration: 480ms;
+      transform: translate3d(0.08361px, 104.99997px, 0);
+    }
+
+    .menu-open:checked ~ .menu-item:nth-child(7) {
+      transition-duration: 580ms;
+      transform: translate3d(-90.86291px, 52.62064px, 0);
+    }
+
+    .menu-open:checked ~ .menu-item:nth-child(8) {
+      transition-duration: 680ms;
+      transform: translate3d(-91.03006px, -52.33095px, 0);
+    }
+
+    .blue { background-color: #669AE1; box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.12); }
+    .blue:hover { color: #669AE1; text-shadow: none; }
+    .green { background-color: #70CC72; box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.12); }
+    .green:hover { color: #70CC72; text-shadow: none; }
+    .red { background-color: #FE4365; box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.12); }
+    .red:hover { color: #FE4365; text-shadow: none; }
+    .purple { background-color: #C49CDE; box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.12); }
+    .purple:hover { color: #C49CDE; text-shadow: none; }
+    .orange { background-color: #FC913A; box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.12); }
+    .orange:hover { color: #FC913A; text-shadow: none; }
+    .lightblue { background-color: #62C2E4; box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.12); }
+    .lightblue:hover { color: #62C2E4; text-shadow: none; }
 `;
 
 function createTransformUI() {
@@ -184,6 +347,95 @@ function createTrimUI() {
 
     document.documentElement.appendChild(trimOverlay);
     setupTrimEvents();
+}
+
+// Custom Menu UI
+function createMenuUI() {
+    if (document.getElementById('custom-radial-menu')) return;
+    injectStyles();
+
+    // Inject FontAwesome
+    if (!document.getElementById('fa-styles')) {
+        const link = document.createElement('link');
+        link.id = 'fa-styles';
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css';
+        document.head.appendChild(link);
+    }
+
+    const menuContainer = document.createElement('nav');
+    menuContainer.id = 'custom-radial-menu';
+    menuContainer.className = 'radial-menu';
+
+    menuContainer.innerHTML = `
+       <input type="checkbox" class="menu-open" name="menu-open" id="menu-open">
+       <label class="menu-open-button" for="menu-open">
+        <span class="lines line-1"></span>
+        <span class="lines line-2"></span>
+        <span class="lines line-3"></span>
+      </label>
+
+       <a href="#" class="menu-item blue" id="menu-btn-transform" title="Transform (Resize)"> <i class="fa fa-arrows"></i> </a>
+       <a href="#" class="menu-item red" id="menu-btn-trim" title="Trim (Crop)"> <i class="fa fa-crop"></i> </a>
+       <a href="#" class="menu-item green" id="menu-btn-reset" title="Reset Trim"> <i class="fa fa-refresh"></i> </a>
+       <a href="#" class="menu-item purple" id="menu-btn-clickthrough" title="Toggle Click-Through"> <i class="fa fa-mouse-pointer"></i> </a>
+       <a href="#" class="menu-item orange" id="menu-btn-close" title="Close Menu"> <i class="fa fa-times"></i> </a>
+    `;
+
+    document.documentElement.appendChild(menuContainer);
+
+    // Add Listeners
+    const closeMenu = () => {
+        const checkbox = document.getElementById('menu-open');
+        if (checkbox) checkbox.checked = false;
+        ipcRenderer.send('menu-closed');
+    };
+
+    document.getElementById('menu-btn-transform').onclick = (e) => {
+        e.preventDefault();
+        toggleTransform(!transformMode);
+        closeMenu();
+    };
+
+    document.getElementById('menu-btn-trim').onclick = (e) => {
+        e.preventDefault();
+        toggleTrim(!trimMode);
+        closeMenu();
+    };
+
+    document.getElementById('menu-btn-reset').onclick = (e) => {
+        e.preventDefault();
+        ipcRenderer.send('request-reset-trim'); // Need to handle this locally or send ipc?
+        // Existing reset-trim is listener.
+        // We should just call the reset logic or emit event?
+        // Logic for reset is inside listener: ipcRenderer.on('reset-trim'...)
+        // We can just execute the logic:
+        cropValues = { top: 0, right: 0, bottom: 0, left: 0 };
+        const trimWrapper = document.getElementById('trim-content-wrapper');
+        if (trimWrapper) {
+            trimWrapper.style.setProperty('transform', 'translate(0px, 0px)', 'important');
+        }
+        closeMenu();
+    };
+
+    document.getElementById('menu-btn-clickthrough').onclick = (e) => {
+        e.preventDefault();
+        ipcRenderer.send('request-toggle-click-through');
+        closeMenu();
+    };
+
+    document.getElementById('menu-btn-close').onclick = (e) => {
+        e.preventDefault();
+        closeMenu();
+    };
+
+    // Watch for menu toggle button (center button)
+    const checkbox = document.getElementById('menu-open');
+    checkbox.addEventListener('change', () => {
+        if (!checkbox.checked) {
+            ipcRenderer.send('menu-closed');
+        }
+    });
 }
 
 function injectStyles() {
@@ -328,6 +580,12 @@ function startResize(e, pos) {
 }
 
 // IPC Listeners from Menu
+ipcRenderer.on('toggle-menu', () => {
+    createMenuUI();
+    const checkbox = document.getElementById('menu-open');
+    if (checkbox) checkbox.checked = true;
+});
+
 ipcRenderer.on('toggle-transform', () => toggleTransform(!transformMode));
 ipcRenderer.on('toggle-trim', () => toggleTrim(!trimMode));
 

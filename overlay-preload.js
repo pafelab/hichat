@@ -90,7 +90,7 @@ const overlayStyles = `
         border: 1px solid white;
         box-shadow: 0 0 2px black;
     }
-    
+
     /* Side handles for cropping (Hit areas + Anchors) */
     .trim-handle.n { top: -6px; left: 0; width: 100%; height: 12px; cursor: ns-resize; }
     .trim-handle.s { bottom: -6px; left: 0; width: 100%; height: 12px; cursor: ns-resize; }
@@ -135,10 +135,36 @@ const overlayStyles = `
       line-height: 80px;
       -webkit-transform: translate3d(0, 0, 0);
       transform: translate3d(0, 0, 0);
-      -webkit-transition: -webkit-transform ease-out 200ms;
-      transition: -webkit-transform ease-out 200ms;
-      transition: transform ease-out 200ms;
+      -webkit-transition: transform ease-out 200ms, width 200ms, border-radius 200ms, opacity 200ms;
+      transition: transform ease-out 200ms, width 200ms, border-radius 200ms, opacity 200ms;
       pointer-events: auto;
+
+      /* New: Flex for content */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0; /* Hidden by default */
+    }
+
+    /* Hover effect for buttons to expand into pill shape */
+    .menu-item:hover {
+        width: 180px;
+        border-radius: 40px;
+        z-index: 2000; /* Ensure overlap */
+    }
+
+    /* Text inside menu items */
+    .menu-text {
+        display: none;
+        margin-left: 10px;
+        white-space: nowrap;
+        font-family: 'Sarabun', sans-serif;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .menu-item:hover .menu-text {
+        display: inline-block;
     }
 
     .menu-open {
@@ -239,6 +265,7 @@ const overlayStyles = `
 
     .menu-open:checked ~ .menu-item {
       transition-timing-function: cubic-bezier(0.935, 0, 0.34, 1.33);
+      opacity: 1; /* Show when open */
     }
 
     .menu-open:checked ~ .menu-item:nth-child(3) {
@@ -375,11 +402,11 @@ function createMenuUI() {
         <span class="lines line-3"></span>
       </label>
 
-       <a href="#" class="menu-item blue" id="menu-btn-transform" title="Transform (Resize)"> <i class="fa fa-arrows"></i> </a>
-       <a href="#" class="menu-item red" id="menu-btn-trim" title="Trim (Crop)"> <i class="fa fa-crop"></i> </a>
-       <a href="#" class="menu-item green" id="menu-btn-reset" title="Reset Trim"> <i class="fa fa-refresh"></i> </a>
-       <a href="#" class="menu-item purple" id="menu-btn-clickthrough" title="Toggle Click-Through"> <i class="fa fa-mouse-pointer"></i> </a>
-       <a href="#" class="menu-item orange" id="menu-btn-close" title="Close Menu"> <i class="fa fa-times"></i> </a>
+       <a href="#" class="menu-item blue" id="menu-btn-transform" title="Transform (Resize)"> <i class="fa fa-arrows"></i> <span class="menu-text">Resize</span> </a>
+       <a href="#" class="menu-item red" id="menu-btn-trim" title="Trim (Crop)"> <i class="fa fa-crop"></i> <span class="menu-text">Crop</span> </a>
+       <a href="#" class="menu-item green" id="menu-btn-reset" title="Reset Trim"> <i class="fa fa-refresh"></i> <span class="menu-text">Reset</span> </a>
+       <a href="#" class="menu-item purple" id="menu-btn-clickthrough" title="Toggle Click-Through"> <i class="fa fa-mouse-pointer"></i> <span class="menu-text">Click-Through</span> </a>
+       <a href="#" class="menu-item orange" id="menu-btn-close" title="Close Menu"> <i class="fa fa-times"></i> <span class="menu-text">Close</span> </a>
     `;
 
     document.documentElement.appendChild(menuContainer);

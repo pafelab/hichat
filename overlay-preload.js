@@ -243,6 +243,7 @@ const overlayStyles = `
     .menu-item:nth-child(6) { transition-duration: 180ms; }
     .menu-item:nth-child(7) { transition-duration: 180ms; }
     .menu-item:nth-child(8) { transition-duration: 180ms; }
+    .menu-item:nth-child(9) { transition-duration: 180ms; }
 
     .menu-open-button {
       z-index: 2;
@@ -298,6 +299,11 @@ const overlayStyles = `
       transform: translate3d(-91.03006px, -52.33095px, 0);
     }
 
+    .menu-open:checked ~ .menu-item:nth-child(9) {
+      transition-duration: 780ms;
+      transform: translate3d(-0.25084px, -104.9997px, 0);
+    }
+
     .blue { background-color: #669AE1; box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.12); }
     .blue:hover { color: #669AE1; text-shadow: none; }
     .green { background-color: #70CC72; box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.14); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.12); }
@@ -348,9 +354,10 @@ function createTrimUI() {
 
     // Lock Body Size if not already locked
     // If starting trim mode, we capture the current size as the "Source Size"
-    if (!trimMode) {
-        // Use scrollWidth/Height to capture full content size if larger than window
-        // But typically we want the current visible viewport to be locked.
+    // Capture if not already captured? Or reset if re-entering?
+    // If we re-enter, trimMode might be true or false depending on when this called.
+    // Ensure wrapper exists.
+    if (!document.getElementById('trim-content-wrapper')) {
         originalSize.width = Math.max(window.innerWidth, document.documentElement.scrollWidth);
         originalSize.height = Math.max(window.innerHeight, document.documentElement.scrollHeight);
         applyTrimCSS();
@@ -406,6 +413,7 @@ function createMenuUI() {
        <a href="#" class="menu-item red" id="menu-btn-trim" title="Trim (Crop)"> <i class="fa fa-crop"></i> <span class="menu-text">Crop</span> </a>
        <a href="#" class="menu-item green" id="menu-btn-reset" title="Reset Trim"> <i class="fa fa-refresh"></i> <span class="menu-text">Reset</span> </a>
        <a href="#" class="menu-item purple" id="menu-btn-clickthrough" title="Toggle Click-Through"> <i class="fa fa-mouse-pointer"></i> <span class="menu-text">Click-Through</span> </a>
+       <a href="#" class="menu-item lightblue" id="menu-btn-hide" title="Hide/Show Chat"> <i class="fa fa-eye-slash"></i> <span class="menu-text">Hide/Show</span> </a>
        <a href="#" class="menu-item orange" id="menu-btn-close" title="Close Menu"> <i class="fa fa-times"></i> <span class="menu-text">Close</span> </a>
     `;
 
@@ -448,6 +456,21 @@ function createMenuUI() {
     document.getElementById('menu-btn-clickthrough').onclick = (e) => {
         e.preventDefault();
         ipcRenderer.send('request-toggle-click-through');
+        closeMenu();
+    };
+
+    document.getElementById('menu-btn-hide').onclick = (e) => {
+        e.preventDefault();
+        const wrapper = document.getElementById('trim-content-wrapper');
+        // If wrapper exists, toggle its opacity. If not (not trimmed yet), toggle body?
+        // But if wrapper doesn't exist, we haven't trimmed, so content is in body.
+        // Wait, applyTrimCSS wraps everything. If not called, content is in body.
+        // Let's ensure wrapper exists or toggle body.
+        if (wrapper) {
+            wrapper.style.opacity = (wrapper.style.opacity === '0') ? '1' : '0';
+        } else {
+            document.body.style.opacity = (document.body.style.opacity === '0') ? '1' : '0';
+        }
         closeMenu();
     };
 

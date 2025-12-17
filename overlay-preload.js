@@ -202,7 +202,7 @@ const overlayStyles = `
       text-align: center;
       box-sizing: border-box;
       font-size: 26px;
-      z-index: 100000;
+      z-index: 2147483647;
       pointer-events: none;
     }
 

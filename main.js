@@ -293,6 +293,24 @@ ipcMain.on('launch-overlay', (event, data) => {
         overlayWindow = createTransparentWindow({
             x: x, y: y, width: width, height: height
         });
+
+        // Strip CSP headers to allow injecting custom CSS/JS (e.g. FontAwesome, YouTube chat styles)
+        overlayWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+            const responseHeaders = { ...details.responseHeaders };
+            // Remove CSP headers
+            Object.keys(responseHeaders).forEach(header => {
+                if (header.toLowerCase() === 'content-security-policy' ||
+                    header.toLowerCase() === 'x-frame-options') {
+                    delete responseHeaders[header];
+                }
+            });
+
+            callback({
+                cancel: false,
+                responseHeaders: responseHeaders
+            });
+        });
+
         overlayWindow.on('closed', () => overlayWindow = null);
         overlayWindow.loadURL(embedUrl);
         overlayWindow.webContents.on('did-finish-load', () => {

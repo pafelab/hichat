@@ -4,9 +4,11 @@ import { staticPlugin } from "@elysiajs/static";
 import { Database } from "bun:sqlite";
 
 import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
 
 // Ensure uploads directory exists
-await mkdir("uploads", { recursive: true });
+const UPLOAD_DIR = join(process.cwd(), "uploads");
+await mkdir(UPLOAD_DIR, { recursive: true });
 
 // Initialize Database
 const db = new Database("faces.db");
@@ -36,7 +38,7 @@ type FaceDescriptor = number[];
 const app = new Elysia()
   .use(cors())
   .use(staticPlugin({
-    assets: "uploads",
+    assets: UPLOAD_DIR,
     prefix: "/uploads"
   }))
   .post("/api/upload", async ({ body }) => {
@@ -53,10 +55,7 @@ const app = new Elysia()
     // Using a UUID or a clean timestamp + sanitized name is safer
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
     const filename = `${Date.now()}-${crypto.randomUUID()}-${safeName}`;
-    const uploadPath = `uploads/${filename}`;
-
-    // Ensure uploads directory exists
-    // (Though we usually create it at startup, double checking here or relying on init is good practice)
+    const uploadPath = join(UPLOAD_DIR, filename);
 
     // Save file
     await Bun.write(uploadPath, file);

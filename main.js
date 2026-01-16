@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, MenuItem, screen, globalShortcut } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, MenuItem, screen, globalShortcut, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -340,6 +340,27 @@ ipcMain.on('launch-overlay', (event, data) => {
 });
 
 app.whenReady().then(() => {
+    // Permission to embed iframes and scripts
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+        const responseHeaders = Object.assign({}, details.responseHeaders);
+
+        // Delete headers that block embedding or scripts
+        const headersToDelete = [
+            'x-frame-options',
+            'content-security-policy',
+            'frame-ancestors',
+            'strict-transport-security' // Sometimes helps with https/http mix issues
+        ];
+
+        Object.keys(responseHeaders).forEach(header => {
+            if (headersToDelete.includes(header.toLowerCase())) {
+                delete responseHeaders[header];
+            }
+        });
+
+        callback({ cancel: false, responseHeaders });
+    });
+
     createConfigWindow();
 
     app.on('activate', () => {

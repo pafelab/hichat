@@ -209,47 +209,24 @@ function createTransparentWindow(opts) {
 
     // Function to show context menu
     const showContextMenu = () => {
-        // Temporarily disable click-through
+        // Temporarily disable click-through to interact with the HTML menu
         win.setIgnoreMouseEvents(false);
         
-        const menu = new Menu();
-        menu.append(new MenuItem({
-            label: 'Transform (Resize Window) - Press T',
-            click: () => win.webContents.send('toggle-transform')
-        }));
-        menu.append(new MenuItem({
-            label: 'Trim (Crop Edges) - Press C',
-            click: () => win.webContents.send('toggle-trim')
-        }));
-        menu.append(new MenuItem({ type: 'separator' }));
-        menu.append(new MenuItem({
-            label: 'Reset Trim - Press R',
-            click: () => win.webContents.send('reset-trim')
-        }));
-        menu.append(new MenuItem({ type: 'separator' }));
-        menu.append(new MenuItem({
-            label: 'Toggle Click-Through - Press Space',
-            click: () => win.webContents.send('toggle-click-through')
-        }));
-        
-        menu.popup({ window: win });
-        
-        // Restore state after menu closes
-        menu.on('menu-will-close', () => {
-            setTimeout(() => {
-                if (!win.isDestroyed()) {
-                    // Restore to what it was supposed to be
-                    const shouldIgnore = win._clickThrough !== false;
-                    win.setIgnoreMouseEvents(shouldIgnore, { forward: true });
-                }
-            }, 100);
-        });
+        // Send IPC to renderer to show the custom HTML menu
+        win.webContents.send('toggle-menu');
     };
 
     // Listen for show-menu event from renderer
     win.webContents.on('ipc-message', (event, channel) => {
         if (channel === 'show-context-menu') {
             showContextMenu();
+        }
+        if (channel === 'menu-closed') {
+            // Restore click-through state when menu is closed
+            if (!win.isDestroyed()) {
+                const shouldIgnore = win._clickThrough !== false;
+                win.setIgnoreMouseEvents(shouldIgnore, { forward: true });
+            }
         }
     });
 
@@ -270,15 +247,19 @@ ipcMain.on('launch-overlay', (event, data) => {
 
     // Register global shortcut
     globalShortcut.unregisterAll(); // Clear previous
-    if (menuShortcut) {
+
+    // Default to Shift+F1 if empty
+    const shortcutToRegister = menuShortcut || 'Shift+F1';
+
+    if (shortcutToRegister) {
         try {
-            const ret = globalShortcut.register(menuShortcut, () => {
+            const ret = globalShortcut.register(shortcutToRegister, () => {
                 if (overlayWindow && !overlayWindow.isDestroyed()) {
                     overlayWindow.openContextMenu();
                 }
             });
             if (!ret) {
-                console.error('Registration failed for shortcut:', menuShortcut);
+                console.error('Registration failed for shortcut:', shortcutToRegister);
             }
         } catch (err) {
             console.error('Error registering shortcut:', err);

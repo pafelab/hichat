@@ -8,13 +8,14 @@ let alertWindow;
 
 const CONFIG_PATH = path.join(app.getPath('userData'), 'config.json');
 
-function loadConfig() {
+async function loadConfig() {
     try {
-        if (fs.existsSync(CONFIG_PATH)) {
-            return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
-        }
+        const data = await fs.promises.readFile(CONFIG_PATH, 'utf-8');
+        return JSON.parse(data);
     } catch (error) {
-        console.error('Error loading config:', error);
+        if (error.code !== 'ENOENT') {
+            console.error('Error loading config:', error);
+        }
     }
     return null;
 }
@@ -40,8 +41,8 @@ function createConfigWindow() {
 
     configWindow.loadFile('index.html');
 
-    configWindow.webContents.on('did-finish-load', () => {
-        const config = loadConfig();
+    configWindow.webContents.on('did-finish-load', async () => {
+        const config = await loadConfig();
         if (config) {
             configWindow.webContents.send('load-settings', config);
         }

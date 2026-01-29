@@ -279,12 +279,28 @@ function startResize(e, pos) {
     let startX = e.screenX;
     let startY = e.screenY;
     
+    let ticking = false;
+    let latestScreenX = startX;
+    let latestScreenY = startY;
+
     const onMouseMove = (ev) => {
-        const deltaX = ev.screenX - startX;
-        const deltaY = ev.screenY - startY;
-        ipcRenderer.send('overlay-resize', { x: deltaX, y: deltaY, edge: pos });
-        startX = ev.screenX;
-        startY = ev.screenY;
+        latestScreenX = ev.screenX;
+        latestScreenY = ev.screenY;
+
+        if (!ticking) {
+            requestAnimationFrame(() => {
+                const deltaX = latestScreenX - startX;
+                const deltaY = latestScreenY - startY;
+
+                if (deltaX !== 0 || deltaY !== 0) {
+                    ipcRenderer.send('overlay-resize', { x: deltaX, y: deltaY, edge: pos });
+                    startX = latestScreenX;
+                    startY = latestScreenY;
+                }
+                ticking = false;
+            });
+            ticking = true;
+        }
     };
 
     const onMouseUp = () => {

@@ -184,8 +184,9 @@ ipcMain.on('request-toggle-click-through', (event) => {
 // Helper to create transparent window
 // Helper to create transparent window
 function createTransparentWindow(opts) {
+    const { clickThrough = true, ...windowOpts } = opts;
     const win = new BrowserWindow({
-        ...opts,
+        ...windowOpts,
         frame: false,
         transparent: true,
         alwaysOnTop: true,
@@ -200,9 +201,9 @@ function createTransparentWindow(opts) {
 
     win.setAlwaysOnTop(true, 'screen-saver');
     
-    // CRITICAL: Enable click-through by default
-    win.setIgnoreMouseEvents(true, { forward: true });
-    win._clickThrough = true; // Track state
+    // CRITICAL: Enable click-through by default, unless specified otherwise
+    win.setIgnoreMouseEvents(clickThrough, { forward: true });
+    win._clickThrough = clickThrough; // Track state
 
     win.on('closed', () => {
         // Handled by caller
@@ -297,13 +298,16 @@ ipcMain.on('launch-overlay', (event, data) => {
 
     if (embedUrl) {
         overlayWindow = createTransparentWindow({
-            x: x, y: y, width: width, height: height
+            x: x, y: y, width: width, height: height,
+            clickThrough: false // Start interactive so it can be moved/resized
         });
         overlayWindow.on('closed', () => overlayWindow = null);
         overlayWindow.loadURL(embedUrl);
         overlayWindow.webContents.on('did-finish-load', () => {
             if (zoom) overlayWindow.webContents.setZoomFactor(zoom);
             if (css) overlayWindow.webContents.insertCSS(css).catch(e => console.error('Failed to inject CSS:', e));
+            // Automatically enable Transform mode to allow moving/resizing
+            overlayWindow.webContents.send('toggle-transform');
         });
     }
 

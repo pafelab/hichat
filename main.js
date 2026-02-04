@@ -20,9 +20,9 @@ async function loadConfig() {
     return null;
 }
 
-function saveConfig(data) {
+async function saveConfig(data) {
     try {
-        fs.writeFileSync(CONFIG_PATH, JSON.stringify(data, null, 2));
+        await fs.promises.writeFile(CONFIG_PATH, JSON.stringify(data, null, 2));
     } catch (error) {
         console.error('Error saving config:', error);
     }

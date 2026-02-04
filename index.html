@@ -111,6 +111,10 @@
             text-align: center;
         }
 
+        #status.error {
+            color: #ed4245; /* Discord Red */
+        }
+
         /* Range Slider Styling */
         input[type="range"] {
             -webkit-appearance: none;
@@ -214,7 +218,7 @@ yt-live-chat-message-input-renderer {
     </div>
 
     <button id="launch">เริ่มใช้งาน (Launch Overlay)</button>
-    <div id="status"></div>
+    <div id="status" aria-live="polite"></div>
 
     <script src="renderer.js"></script>
 </body>

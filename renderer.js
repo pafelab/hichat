@@ -1,3 +1,13 @@
+function setStatus(msg, isError = false) {
+    const statusEl = document.getElementById('status');
+    statusEl.innerText = msg;
+    if (isError) {
+        statusEl.classList.add('error');
+    } else {
+        statusEl.classList.remove('error');
+    }
+}
+
 document.getElementById('launch').addEventListener('click', () => {
     const url = document.getElementById('url').value;
     const css = document.getElementById('css').value;
@@ -14,15 +24,27 @@ document.getElementById('launch').addEventListener('click', () => {
     const slHeight = parseInt(document.getElementById('sl-height').value) || 400;
 
     if (!url && !slUrl) {
-        alert('กรุณาใส่ลิ้งก์อย่างน้อยหนึ่งช่อง (Please enter at least one URL)');
+        setStatus('กรุณาใส่ลิ้งก์อย่างน้อยหนึ่งช่อง (Please enter at least one URL)', true);
         return;
     }
+
+    const launchBtn = document.getElementById('launch');
+    const originalText = launchBtn.innerText;
+
+    launchBtn.disabled = true;
+    launchBtn.innerText = 'Launching...';
 
     window.api.send('launch-overlay', { 
         url, css, x, y, width, height, zoom, menuShortcut,
         slUrl, slWidth, slHeight
     });
-    document.getElementById('status').innerText = 'Overlay launched!';
+
+    setStatus('Overlay launched!');
+
+    setTimeout(() => {
+        launchBtn.disabled = false;
+        launchBtn.innerText = originalText;
+    }, 2000);
 });
 
 document.getElementById('zoom').addEventListener('input', (e) => {

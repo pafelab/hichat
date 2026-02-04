@@ -429,7 +429,7 @@ function startTrim(e, pos) {
 
         if (!isThrottled) {
             isThrottled = true;
-            setTimeout(flushTrimUpdate, 16); // ~60fps throttle
+            requestAnimationFrame(flushTrimUpdate);
         }
 
         startX = ev.screenX;

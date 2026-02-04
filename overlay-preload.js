@@ -253,11 +253,10 @@ function setupDragEvents(element) {
 
     document.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
-        const deltaX = e.screenX - startX;
-        const deltaY = e.screenY - startY;
 
-        pendingDeltaX += deltaX;
-        pendingDeltaY += deltaY;
+        // Accumulate deltas directly
+        pendingDeltaX += (e.screenX - startX);
+        pendingDeltaY += (e.screenY - startY);
 
         startX = e.screenX;
         startY = e.screenY;
@@ -378,14 +377,14 @@ function startTrim(e, pos) {
     
     // Throttling state
     let pendingTrimUpdate = { x: 0, y: 0, width: 0, height: 0 };
-    let isThrottled = false;
+    let rafId = null;
 
     const flushTrimUpdate = () => {
         if (pendingTrimUpdate.x !== 0 || pendingTrimUpdate.y !== 0 || pendingTrimUpdate.width !== 0 || pendingTrimUpdate.height !== 0) {
             ipcRenderer.send('trim-resize', pendingTrimUpdate);
             pendingTrimUpdate = { x: 0, y: 0, width: 0, height: 0 };
         }
-        isThrottled = false;
+        rafId = null;
     };
 
     const onMouseMove = (ev) => {
@@ -427,9 +426,8 @@ function startTrim(e, pos) {
         pendingTrimUpdate.width += currentDelta.width;
         pendingTrimUpdate.height += currentDelta.height;
 
-        if (!isThrottled) {
-            isThrottled = true;
-            setTimeout(flushTrimUpdate, 16); // ~60fps throttle
+        if (!rafId) {
+            rafId = requestAnimationFrame(flushTrimUpdate);
         }
 
         startX = ev.screenX;
@@ -439,6 +437,11 @@ function startTrim(e, pos) {
     const onMouseUp = () => {
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', onMouseUp);
+
+        if (rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+        }
         // Ensure final update is sent
         flushTrimUpdate();
     };

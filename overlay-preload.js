@@ -240,6 +240,9 @@ function applyTrimCSS() {
 function setupDragEvents(element) {
     let isDragging = false;
     let startX, startY;
+    let rafId = null;
+    let pendingDeltaX = 0;
+    let pendingDeltaY = 0;
 
     element.addEventListener('mousedown', (e) => {
         isDragging = true;
@@ -252,14 +255,39 @@ function setupDragEvents(element) {
         if (!isDragging) return;
         const deltaX = e.screenX - startX;
         const deltaY = e.screenY - startY;
-        ipcRenderer.send('overlay-move', { x: deltaX, y: deltaY });
+
+        pendingDeltaX += deltaX;
+        pendingDeltaY += deltaY;
+
         startX = e.screenX;
         startY = e.screenY;
+
+        if (!rafId) {
+            rafId = requestAnimationFrame(() => {
+                if (pendingDeltaX !== 0 || pendingDeltaY !== 0) {
+                    ipcRenderer.send('overlay-move', { x: pendingDeltaX, y: pendingDeltaY });
+                    pendingDeltaX = 0;
+                    pendingDeltaY = 0;
+                }
+                rafId = null;
+            });
+        }
     });
 
     document.addEventListener('mouseup', () => {
         isDragging = false;
         document.body.style.cursor = 'default';
+
+        if (rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+        }
+
+        if (pendingDeltaX !== 0 || pendingDeltaY !== 0) {
+            ipcRenderer.send('overlay-move', { x: pendingDeltaX, y: pendingDeltaY });
+            pendingDeltaX = 0;
+            pendingDeltaY = 0;
+        }
     });
 }
 

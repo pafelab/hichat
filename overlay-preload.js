@@ -332,6 +332,18 @@ function startTrim(e, pos) {
     let startX = e.screenX;
     let startY = e.screenY;
     
+    // Throttling state
+    let pendingTrimUpdate = { x: 0, y: 0, width: 0, height: 0 };
+    let isThrottled = false;
+
+    const flushTrimUpdate = () => {
+        if (pendingTrimUpdate.x !== 0 || pendingTrimUpdate.y !== 0 || pendingTrimUpdate.width !== 0 || pendingTrimUpdate.height !== 0) {
+            ipcRenderer.send('trim-resize', pendingTrimUpdate);
+            pendingTrimUpdate = { x: 0, y: 0, width: 0, height: 0 };
+        }
+        isThrottled = false;
+    };
+
     const onMouseMove = (ev) => {
         const deltaX = ev.screenX - startX;
         const deltaY = ev.screenY - startY;
@@ -345,27 +357,36 @@ function startTrim(e, pos) {
         //   Dragging Left (-x): Window Width decreases.
         
         // We calculate delta to apply to crop
-        let trimUpdate = { x: 0, y: 0, width: 0, height: 0 };
+        let currentDelta = { x: 0, y: 0, width: 0, height: 0 };
         
         if (pos === 'w') {
             cropValues.left += deltaX;
-            trimUpdate.x = deltaX; // Move window right
-            trimUpdate.width = -deltaX; // Shrink window
+            currentDelta.x = deltaX; // Move window right
+            currentDelta.width = -deltaX; // Shrink window
             document.body.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
         } else if (pos === 'e') {
             cropValues.right -= deltaX; 
-            trimUpdate.width = deltaX;
+            currentDelta.width = deltaX;
             // No content shift needed for right edge
         } else if (pos === 'n') {
             cropValues.top += deltaY;
-            trimUpdate.y = deltaY; // Move window down
-            trimUpdate.height = -deltaY; // Shrink window
+            currentDelta.y = deltaY; // Move window down
+            currentDelta.height = -deltaY; // Shrink window
             document.body.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
         } else if (pos === 's') {
-            trimUpdate.height = deltaY;
+            currentDelta.height = deltaY;
         }
 
-        ipcRenderer.send('trim-resize', trimUpdate);
+        // Accumulate deltas
+        pendingTrimUpdate.x += currentDelta.x;
+        pendingTrimUpdate.y += currentDelta.y;
+        pendingTrimUpdate.width += currentDelta.width;
+        pendingTrimUpdate.height += currentDelta.height;
+
+        if (!isThrottled) {
+            isThrottled = true;
+            setTimeout(flushTrimUpdate, 16); // ~60fps throttle
+        }
 
         startX = ev.screenX;
         startY = ev.screenY;
@@ -374,6 +395,8 @@ function startTrim(e, pos) {
     const onMouseUp = () => {
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', onMouseUp);
+        // Ensure final update is sent
+        flushTrimUpdate();
     };
 
     document.addEventListener('mousemove', onMouseMove);

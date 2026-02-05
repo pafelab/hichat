@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Chat Overlay Layout</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #f0f0f0; /* Light background for visibility during setup */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: sans-serif;
+            overflow: hidden; /* Prevent scrollbars */
+        }
+
+        .chat-container {
+            width: 400px;
+            height: 600px;
+            background-color: white;
+            border: 2px solid #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .chat-header {
+            background-color: #6200ea;
+            color: white;
+            padding: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+
+        .message {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: #e1bee7;
+            border-radius: 4px;
+        }
+
+        .message.highlight {
+            background: #d1c4e9;
+            border-left: 4px solid #6200ea;
+        }
+
+        /* Simulated iframe container */
+        .iframe-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            border: 1px dashed #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- This is the box we want to "Crop" to -->
+    <div class="chat-container">
+        <div class="chat-header">Live Chat</div>
+        <div class="chat-messages">
+            <div class="message">User1: Hello world!</div>
+            <div class="message highlight">User2: This is a highlighted message.</div>
+            <div class="message">User3: Is this working?</div>
+            <div class="message">User4: Yes, the trim should isolate this box.</div>
+            <!-- You could put an iframe here -->
+            <!-- <iframe src="https://www.youtube.com/live_chat?v=..." style="width:100%; height:100%; border:none;"></iframe> -->
+        </div>
+    </div>
+
+</body>
+</html>

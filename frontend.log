@@ -1,0 +1,39 @@
+
+> frontend@0.0.0 dev
+> vite --host 0.0.0.0
+
+
+  VITE v7.3.0  ready in 460 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://192.168.0.2:5173/
+2:22:05 AM [vite] (client) hmr update /src/App.tsx, /src/index.css
+2:22:48 AM [vite] (client) hmr update /src/index.css
+2:22:48 AM [vite] (client) hmr update /src/index.css
+2:22:48 AM [vite] (client) hmr update /src/index.css
+2:22:48 AM [vite] (client) hmr update /src/index.css
+2:22:48 AM [vite] (client) hmr update /src/index.css
+2:22:48 AM [vite] (client) hmr update /src/index.css
+2:22:48 AM [vite] (client) hmr update /src/index.css
+2:22:48 AM [vite] (client) hmr update /src/index.css
+2:22:48 AM [vite] (client) hmr update /src/index.css
+2:22:48 AM [vite] (client) hmr update /src/index.css
+2:22:49 AM [vite] (client) hmr update /src/index.css
+2:22:49 AM [vite] (client) hmr update /src/index.css
+2:22:49 AM [vite] (client) hmr update /src/index.css
+2:22:49 AM [vite] (client) hmr update /src/index.css
+2:22:49 AM [vite] (client) hmr update /src/index.css
+2:22:49 AM [vite] (client) hmr update /src/index.css
+2:23:10 AM [vite] (client) hmr update /src/index.css
+2:23:11 AM [vite] (client) hmr update /src/index.css
+2:23:11 AM [vite] (client) hmr update /src/index.css
+2:23:11 AM [vite] (client) hmr update /src/index.css
+2:23:11 AM [vite] (client) hmr update /src/index.css
+2:23:11 AM [vite] (client) hmr update /src/index.css
+2:23:12 AM [vite] (client) hmr update /src/index.css
+2:23:12 AM [vite] (client) hmr update /src/index.css
+2:23:12 AM [vite] (client) hmr update /src/index.css
+2:23:12 AM [vite] (client) hmr update /src/index.css
+2:23:12 AM [vite] (client) hmr update /src/index.css
+2:23:12 AM [vite] (client) hmr update /src/index.css
+2:23:12 AM [vite] (client) hmr update /src/index.css

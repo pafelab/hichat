@@ -8,10 +8,16 @@ let alertWindow;
 
 const CONFIG_PATH = path.join(app.getPath('userData'), 'config.json');
 
+let cachedConfig = null;
+
 async function loadConfig() {
+    if (cachedConfig) {
+        return cachedConfig;
+    }
     try {
         const data = await fs.promises.readFile(CONFIG_PATH, 'utf-8');
-        return JSON.parse(data);
+        cachedConfig = JSON.parse(data);
+        return cachedConfig;
     } catch (error) {
         if (error.code !== 'ENOENT') {
             console.error('Error loading config:', error);
@@ -21,6 +27,7 @@ async function loadConfig() {
 }
 
 async function saveConfig(data) {
+    cachedConfig = data;
     try {
         await fs.promises.writeFile(CONFIG_PATH, JSON.stringify(data, null, 2));
     } catch (error) {

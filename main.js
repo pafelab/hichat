@@ -164,26 +164,14 @@ ipcMain.on('trim-resize', (event, { x, y, width, height }) => {
 ipcMain.on('request-toggle-click-through', (event) => {
     const senderWindow = BrowserWindow.fromWebContents(event.sender);
     if (senderWindow) {
-        // Toggle ignore mouse events.
-        // We need to know current state. We can store it on the window object or toggle.
-        // Electron doesn't have a getter for ignoreMouseEvents state easily.
-        // Let's assume default is TRUE (click-through).
-
-        // However, we just came from a menu click, which temporarily disabled it.
-        // The menu's `menu-will-close` handler re-enables it to TRUE after 100ms.
-
-        // If the user clicked "Toggle Click-Through", they want to FLIP the persistent state.
-
+        // Toggle persistent state
         const currentState = senderWindow._clickThrough !== false; // Default true
         const newState = !currentState;
         senderWindow._clickThrough = newState;
 
-        // Apply new state
-        senderWindow.setIgnoreMouseEvents(newState, { forward: true });
-
-        // IMPORTANT: The menu close handler will try to set it to TRUE.
-        // We need to override or update that logic.
-        // But the menu logic is inside createTransparentWindow.
+        // We don't apply it immediately because if the menu is open,
+        // we want to keep the window interactive until the menu closes.
+        // The 'menu-closed' handler will apply this new state.
     }
 });
 
@@ -216,49 +204,20 @@ function createTransparentWindow(opts) {
         // Handled by caller
     });
 
-    // Function to show context menu
-    const showContextMenu = () => {
-        // Temporarily disable click-through
-        win.setIgnoreMouseEvents(false);
-        
-        const menu = new Menu();
-        menu.append(new MenuItem({
-            label: 'Transform (Resize Window) - Press T',
-            click: () => win.webContents.send('toggle-transform')
-        }));
-        menu.append(new MenuItem({
-            label: 'Trim (Crop Edges) - Press C',
-            click: () => win.webContents.send('toggle-trim')
-        }));
-        menu.append(new MenuItem({ type: 'separator' }));
-        menu.append(new MenuItem({
-            label: 'Reset Trim - Press R',
-            click: () => win.webContents.send('reset-trim')
-        }));
-        menu.append(new MenuItem({ type: 'separator' }));
-        menu.append(new MenuItem({
-            label: 'Toggle Click-Through - Press Space',
-            click: () => win.webContents.send('toggle-click-through')
-        }));
-        
-        menu.popup({ window: win });
-        
-        // Restore state after menu closes
-        menu.on('menu-will-close', () => {
-            setTimeout(() => {
-                if (!win.isDestroyed()) {
-                    // Restore to what it was supposed to be
-                    const shouldIgnore = win._clickThrough !== false;
-                    win.setIgnoreMouseEvents(shouldIgnore, { forward: true });
-                }
-            }, 100);
-        });
+    // Function to toggle custom menu
+    const toggleCustomMenu = () => {
+        win.webContents.send('toggle-menu');
     };
 
-    // Listen for show-menu event from renderer
+    // Listen for menu events from renderer
     win.webContents.on('ipc-message', (event, channel) => {
-        if (channel === 'show-context-menu') {
-            showContextMenu();
+        if (channel === 'menu-opened') {
+            // Menu is open, we need to interact with it
+            win.setIgnoreMouseEvents(false);
+        } else if (channel === 'menu-closed') {
+            // Menu is closed, restore persistent state
+            const shouldIgnore = win._clickThrough !== false;
+            win.setIgnoreMouseEvents(shouldIgnore, { forward: true });
         }
     });
 
@@ -266,14 +225,14 @@ function createTransparentWindow(opts) {
     win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
     
     // Expose menu function
-    win.openContextMenu = showContextMenu;
+    win.openContextMenu = toggleCustomMenu;
 
     return win;
 }
 
 
 ipcMain.on('launch-overlay', (event, data) => {
-    const { url, css, x, y, width, height, zoom, menuShortcut, slUrl, slWidth, slHeight } = data;
+    const { url, css, x, y, width, height, zoom, menuShortcut, slUrl, slWidth, slHeight, slZoom, slCss } = data;
     
     saveConfig(data);
 
@@ -346,8 +305,11 @@ ipcMain.on('launch-overlay', (event, data) => {
         });
         alertWindow.on('closed', () => alertWindow = null);
         alertWindow.loadURL(streamlabsLink);
-        // Streamlabs usually doesn't need custom CSS or Zoom, but we could add if needed.
-        // It should be transparent by default.
+
+        alertWindow.webContents.on('did-finish-load', () => {
+            if (slZoom) alertWindow.webContents.setZoomFactor(slZoom);
+            if (slCss) alertWindow.webContents.insertCSS(slCss).catch(e => console.error('Failed to inject Streamlabs CSS:', e));
+        });
     }
 });
 

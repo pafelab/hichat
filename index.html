@@ -17,6 +17,7 @@
             --header-primary: #fff;
             --input-bg: #40444b;
             --border-color: #202225;
+            --card-bg: #2f3136;
         }
 
         body { 
@@ -25,27 +26,37 @@
             background-color: var(--bg-primary); 
             color: var(--text-normal);
             margin: 0;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         h1 { 
             color: var(--header-primary); 
-            margin-bottom: 20px; 
-            font-size: 24px;
-            font-weight: 600;
+            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
         }
 
         h2 { 
-            border-bottom: 1px solid var(--border-color); 
-            padding-bottom: 10px; 
-            margin-top: 30px; 
-            margin-bottom: 15px;
-            font-size: 16px; 
-            color: var(--text-muted); 
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 18px;
+            color: var(--header-primary);
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .form-group { margin-bottom: 20px; }
+        .form-group:last-child { margin-bottom: 0; }
         
         label { 
             display: block; 
@@ -59,63 +70,83 @@
         input[type="number"], 
         textarea { 
             width: 100%; 
-            padding: 10px; 
+            padding: 12px;
             box-sizing: border-box; 
             background-color: var(--input-bg);
-            border: 1px solid transparent; 
+            border: 2px solid transparent;
             border-radius: 4px; 
             color: var(--text-normal);
             font-family: 'Sarabun', sans-serif;
-            transition: border-color 0.2s;
+            transition: all 0.2s;
+            font-size: 14px;
         }
 
         input:focus, textarea:focus {
             outline: none;
             border-color: var(--accent);
+            background-color: #36393f;
         }
 
         textarea { 
-            height: 100px; 
+            height: 120px;
             font-family: monospace; 
+            resize: vertical;
         }
 
         small { 
             color: var(--text-muted); 
             display: block; 
-            margin-top: 5px; 
+            margin-top: 6px;
             font-size: 12px;
+            line-height: 1.4;
         }
 
         button { 
-            padding: 12px 24px; 
-            font-size: 16px; 
+            padding: 16px 32px;
+            font-size: 18px;
             cursor: pointer; 
             background-color: var(--accent); 
             color: white; 
             border: none; 
-            border-radius: 4px; 
-            transition: background 0.2s; 
-            font-weight: 600;
+            border-radius: 8px;
+            transition: transform 0.1s, background 0.2s;
+            font-weight: 700;
             width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
 
-        button:hover { background-color: var(--accent-hover); }
+        button:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+        }
 
-        .row { display: flex; gap: 15px; }
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .row { display: flex; gap: 20px; }
         .col { flex: 1; }
 
         #status { 
-            margin-top: 15px; 
+            margin-top: 20px;
             font-weight: bold; 
-            color: #43b581; /* Discord Green */
+            color: #43b581;
             text-align: center;
+            min-height: 24px;
         }
 
         #status.error {
-            color: #ed4245; /* Discord Red */
+            color: #ed4245;
         }
 
-        /* Range Slider Styling */
         input[type="range"] {
             -webkit-appearance: none;
             width: 100%;
@@ -124,12 +155,13 @@
         
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
+            height: 20px;
+            width: 20px;
             border-radius: 50%;
             background: var(--header-primary);
             cursor: pointer;
-            margin-top: -6px;
+            margin-top: -8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         
         input[type="range"]::-webkit-slider-runnable-track {
@@ -139,45 +171,72 @@
             background: var(--input-bg);
             border-radius: 2px;
         }
+
+        .tips {
+            background-color: rgba(88, 101, 242, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+
+        .tips h3 {
+            color: var(--accent);
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+
+        .tips ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--text-normal);
+            font-size: 14px;
+        }
+
+        .tips li { margin-bottom: 5px; }
+
+        /* Icon classes (simulated with emoji for now) */
+        .icon { font-style: normal; }
     </style>
 </head>
 <body>
-    <h1>ตั้งค่า Chat Overlay</h1>
+    <h1>🎨 Chat Overlay Settings</h1>
     
-    <h2>การตั้งค่าแชท (Chat Settings)</h2>
-    <div class="form-group">
-        <label for="url">ลิ้งก์ YouTube/Twitch (URL):</label>
-        <input type="text" id="url" placeholder="https://www.youtube.com/watch?v=..." value="https://www.youtube.com/watch?v=jfKfPfyJRdk">
-        <small>วางลิ้งก์เต็มของวิดีโอหรือสตรีมที่นี่</small>
-    </div>
+    <div class="card">
+        <h2>💬 การตั้งค่าแชท (Chat Settings)</h2>
+        <div class="form-group">
+            <label for="url">ลิ้งก์ YouTube/Twitch (URL):</label>
+            <input type="text" id="url" placeholder="https://www.youtube.com/watch?v=..." value="https://www.youtube.com/watch?v=jfKfPfyJRdk" aria-label="YouTube or Twitch URL">
+            <small>วางลิ้งก์เต็มของวิดีโอหรือสตรีมที่นี่ (Paste full video or stream URL here)</small>
+        </div>
 
-    <div class="row">
-        <div class="col form-group">
-            <label for="x">ตำแหน่ง X:</label>
-            <input type="number" id="x" value="50">
+        <div class="row">
+            <div class="col form-group">
+                <label for="x">ตำแหน่ง X:</label>
+                <input type="number" id="x" value="50" aria-label="Window X Position">
+            </div>
+            <div class="col form-group">
+                <label for="y">ตำแหน่ง Y:</label>
+                <input type="number" id="y" value="50" aria-label="Window Y Position">
+            </div>
+            <div class="col form-group">
+                <label for="width">ความกว้าง (Width):</label>
+                <input type="number" id="width" value="400" aria-label="Window Width">
+            </div>
+            <div class="col form-group">
+                <label for="height">ความสูง (Height):</label>
+                <input type="number" id="height" value="600" aria-label="Window Height">
+            </div>
         </div>
-        <div class="col form-group">
-            <label for="y">ตำแหน่ง Y:</label>
-            <input type="number" id="y" value="50">
-        </div>
-        <div class="col form-group">
-            <label for="width">ความกว้าง (Width):</label>
-            <input type="number" id="width" value="400">
-        </div>
-        <div class="col form-group">
-            <label for="height">ความสูง (Height):</label>
-            <input type="number" id="height" value="600">
-        </div>
-    </div>
 
-    <div class="form-group">
-        <label for="zoom">ระดับการซูม (Zoom Level): <span id="zoom-val">1.0</span></label>
-        <input type="range" id="zoom" min="0.5" max="2.0" step="0.1" value="1.0">
-    </div>
+        <div class="form-group">
+            <label for="zoom">ระดับการซูม (Zoom Level): <span id="zoom-val">1.0</span></label>
+            <input type="range" id="zoom" min="0.5" max="2.0" step="0.1" value="1.0" aria-label="Zoom Level">
+        </div>
 
-    <div class="form-group">
-        <label for="css">CSS ปรับแต่งเอง (Custom CSS):</label>
-        <textarea id="css" placeholder="body { background-color: rgba(0,0,0,0.5); }">
+        <div class="form-group">
+            <label for="css">CSS ปรับแต่งเอง (Custom CSS):</label>
+            <textarea id="css" placeholder="body { background-color: rgba(0,0,0,0.5); }" aria-label="Custom CSS">
 /* ทำให้พื้นหลังโปร่งใส */
 body { background-color: transparent !important; }
 yt-live-chat-renderer { background-color: transparent !important; }
@@ -191,35 +250,67 @@ yt-live-chat-message-input-renderer {
     display: none !important;
 }
 </textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="menu-shortcut">ปุ่มลัดเมนู (Menu Shortcut):</label>
+            <input type="text" id="menu-shortcut" value="Shift+F1" placeholder="Shift+F1" aria-label="Menu Shortcut Key">
+            <small>ปุ่มสำหรับเปิดเมนูจัดการหน้าต่าง (Key to open management menu)</small>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🔔 การตั้งค่า Streamlabs (Streamlabs Settings)</h2>
+        <div class="form-group">
+            <label for="sl-url">Streamlabs Widget URL / API Key:</label>
+            <input type="text" id="sl-url" placeholder="https://streamlabs.com/alert-box/v3/..." value="" aria-label="Streamlabs URL or Token">
+            <small>ใส่ Widget URL จาก Alert Box Settings หรือ API Token</small>
+        </div>
+
+        <div class="row">
+            <div class="col form-group">
+                <label for="sl-width">ความกว้าง (Width):</label>
+                <input type="number" id="sl-width" value="600" aria-label="Streamlabs Width">
+            </div>
+            <div class="col form-group">
+                <label for="sl-height">ความสูง (Height):</label>
+                <input type="number" id="sl-height" value="400" aria-label="Streamlabs Height">
+            </div>
+        </div>
     </div>
 
     <div class="form-group">
-        <label for="menu-shortcut">ปุ่มลัดเมนู (Menu Shortcut):</label>
-        <input type="text" id="menu-shortcut" value="Shift+F1" placeholder="Shift+F1, CommandOrControl+M, etc.">
-        <small>ปุ่มสำหรับเปิดเมนูจัดการหน้าต่าง (Key to open management menu)</small>
+        <label for="sl-zoom">ระดับการซูม Streamlabs (Streamlabs Zoom): <span id="sl-zoom-val">1.0</span></label>
+        <input type="range" id="sl-zoom" min="0.5" max="2.0" step="0.1" value="1.0">
     </div>
 
-    <h2>การตั้งค่า Streamlabs (Streamlabs Settings)</h2>
     <div class="form-group">
-        <label for="sl-url">Streamlabs Widget URL / API Key:</label>
-        <input type="text" id="sl-url" placeholder="https://streamlabs.com/alert-box/v3/..." value="">
-        <small>ใส Widget URL จาก Alert Box Settings หรือ API Token</small>
-    </div>
-    
-    <div class="row">
-        <div class="col form-group">
-            <label for="sl-width">ความกว้าง (Width):</label>
-            <input type="number" id="sl-width" value="600">
-        </div>
-        <div class="col form-group">
-            <label for="sl-height">ความสูง (Height):</label>
-            <input type="number" id="sl-height" value="400">
-        </div>
+        <label for="sl-css">CSS ปรับแต่งเองสำหรับ Streamlabs (Streamlabs Custom CSS):</label>
+        <textarea id="sl-css" placeholder="body { background-color: transparent; }"></textarea>
     </div>
 
     <button id="launch">เริ่มใช้งาน (Launch Overlay)</button>
     <div id="status" aria-live="polite"></div>
 
+    <div class="tips">
+        <h3>💡 Tips & Shortcuts</h3>
+        <ul>
+            <li><strong><span id="display-shortcut">Shift+F1</span></strong>: Open Control Menu (Toggle Transform/Trim)</li>
+            <li><strong>Transform Mode</strong>: Drag window to move, Drag corners to resize.</li>
+            <li><strong>Trim Mode</strong>: Drag green edges to crop content (e.g., hide headers).</li>
+            <li><strong>YouTube Fix</strong>: If content breaks, use Reset Trim from the menu.</li>
+        </ul>
+    </div>
+
     <script src="renderer.js"></script>
+    <script>
+        // Update tip shortcut when input changes
+        const shortcutInput = document.getElementById('menu-shortcut');
+        const displayShortcut = document.getElementById('display-shortcut');
+
+        shortcutInput.addEventListener('input', () => {
+            displayShortcut.textContent = shortcutInput.value || 'Shift+F1';
+        });
+    </script>
 </body>
 </html>

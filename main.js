@@ -236,7 +236,7 @@ function createTransparentWindow(opts) {
     win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
     
     // Expose menu function
-    win.openContextMenu = toggleCustomMenu;
+    win.openContextMenu = showContextMenu;
 
     return win;
 }

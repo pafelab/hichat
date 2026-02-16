@@ -183,4 +183,89 @@ window.api.on('load-settings', (settings) => {
         document.getElementById('sl-zoom-val').innerText = settings.slZoom;
     }
     if (settings.slCss) document.getElementById('sl-css').value = settings.slCss;
+
+    // Update Pad Initial Position
+    updatePadFromInputs();
 });
+
+// --- Position Pad Logic ---
+const posPad = document.getElementById('position-pad');
+const posHandle = document.getElementById('position-handle');
+const xInput = document.getElementById('x');
+const yInput = document.getElementById('y');
+
+// Assume standard 1080p screen for the pad preview if specific screen info isn't critical
+// Or better, use current screen dims
+const SCREEN_WIDTH = window.screen.width;
+const SCREEN_HEIGHT = window.screen.height;
+
+function updatePadFromInputs() {
+    if (!posPad || !posHandle) return;
+
+    const x = parseInt(xInput.value) || 0;
+    const y = parseInt(yInput.value) || 0;
+
+    // Calculate percentage relative to screen size
+    const leftPct = (x / SCREEN_WIDTH) * 100;
+    const topPct = (y / SCREEN_HEIGHT) * 100;
+
+    posHandle.style.left = `${Math.min(Math.max(leftPct, 0), 100)}%`;
+    posHandle.style.top = `${Math.min(Math.max(topPct, 0), 100)}%`;
+}
+
+function updateInputsFromPad(e) {
+    if (!posPad) return;
+
+    const rect = posPad.getBoundingClientRect();
+
+    // Clamp cursor to rect
+    let clientX = e.clientX;
+    let clientY = e.clientY;
+
+    const padX = clientX - rect.left;
+    const padY = clientY - rect.top;
+
+    // Normalize 0-1
+    let ratioX = padX / rect.width;
+    let ratioY = padY / rect.height;
+
+    // Clamp
+    ratioX = Math.max(0, Math.min(1, ratioX));
+    ratioY = Math.max(0, Math.min(1, ratioY));
+
+    // Convert to Screen Coords
+    const screenX = Math.round(ratioX * SCREEN_WIDTH);
+    const screenY = Math.round(ratioY * SCREEN_HEIGHT);
+
+    xInput.value = screenX;
+    yInput.value = screenY;
+
+    updatePadFromInputs();
+}
+
+// Pad Events
+let isDraggingPad = false;
+
+if (posPad) {
+    posPad.addEventListener('mousedown', (e) => {
+        isDraggingPad = true;
+        updateInputsFromPad(e);
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (isDraggingPad) {
+            e.preventDefault(); // prevent text selection
+            updateInputsFromPad(e);
+        }
+    });
+
+    window.addEventListener('mouseup', () => {
+        isDraggingPad = false;
+    });
+}
+
+// Input Events to Sync Pad
+if (xInput && yInput) {
+    xInput.addEventListener('input', updatePadFromInputs);
+    yInput.addEventListener('input', updatePadFromInputs);
+}

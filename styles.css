@@ -155,6 +155,42 @@ small {
     gap: 1.5rem;
 }
 
+/* Position Pad */
+.position-pad {
+    position: relative;
+    width: 100%;
+    height: 150px;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: crosshair;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+}
+
+.position-pad::before {
+    /* Grid Pattern */
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.position-handle {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: var(--accent);
+    border: 2px solid white;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    pointer-events: none; /* Let clicks pass through to container */
+}
+
 /* Range Inputs */
 input[type="range"] {
     -webkit-appearance: none;

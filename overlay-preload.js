@@ -9,7 +9,97 @@ let transformOverlay = null;
 let cropValues = { top: 0, right: 0, bottom: 0, left: 0 };
 let originalSize = { width: 0, height: 0 };
 
-// CSS for the transform overlay and menu
+// CSS for the custom menu
+const menuStyles = `
+    #custom-menu-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2147483647;
+        font-family: sans-serif;
+    }
+
+    .menu-bar {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background-color: #e8e4df;
+        border-radius: 9999px; /* full rounded */
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-xl */
+        font-size: 1.5rem; /* text-2xl */
+        transition: all 0.3s;
+    }
+
+    .menu-bar:hover {
+        transform: scaleX(1.05);
+    }
+
+    .menu-btn {
+        position: relative;
+        cursor: pointer;
+        background-color: white;
+        border-radius: 9999px;
+        padding: 0.5rem 0.75rem; /* p-2 px-3 */
+        border: none;
+        outline: none;
+        transition: all 0.3s;
+        font-size: 1.5rem;
+        line-height: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .menu-btn:hover {
+        transform: translateY(-1.25rem) scale(1.25); /* -translate-y-5 scale-125 */
+        z-index: 10;
+    }
+
+    /* Tooltip using ::before */
+    .menu-btn::before {
+        content: attr(data-label);
+        position: absolute;
+        top: -1.75rem; /* -top-7 */
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+        font-size: 0.6rem;
+        height: 1rem;
+        padding: 0 0.25rem;
+        border-radius: 0.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+    }
+
+    .menu-btn:hover::before {
+        opacity: 1;
+    }
+
+    /* Dark mode override if needed, here hardcoded based on snippet logic but simplified */
+    @media (prefers-color-scheme: dark) {
+        .menu-bar {
+            background-color: #191818;
+        }
+        .menu-btn {
+            background-color: #191818;
+        }
+        .menu-btn::before {
+            background-color: white;
+            color: black;
+        }
+    }
+`;
+
+// CSS for the transform overlay
 const overlayStyles = `
     #transform-overlay {
         position: fixed;
@@ -168,6 +258,84 @@ const overlayStyles = `
         opacity: 1;
     }
 `;
+
+function createCustomMenu() {
+    if (document.getElementById('custom-menu-container')) return;
+
+    // Inject Menu Styles
+    if (!document.getElementById('menu-styles')) {
+        const style = document.createElement('style');
+        style.id = 'menu-styles';
+        style.textContent = menuStyles;
+        document.head.appendChild(style);
+    }
+
+    const container = document.createElement('div');
+    container.id = 'custom-menu-container';
+
+    const menuBar = document.createElement('div');
+    menuBar.className = 'menu-bar';
+
+    // Define buttons
+    const buttons = [
+        { label: 'Transform', icon: '↔️', action: () => toggleTransform(!transformMode) },
+        { label: 'Trim', icon: '✂️', action: () => toggleTrim(!trimMode) },
+        { label: 'Reset', icon: '🔄', action: () => {
+            cropValues = { top: 0, right: 0, bottom: 0, left: 0 };
+            const trimWrapper = document.getElementById('trim-content-wrapper');
+            if (trimWrapper) {
+                trimWrapper.style.setProperty('transform', 'translate(0px, 0px)', 'important');
+            }
+            location.reload();
+        }},
+        { label: 'Lock/Unlock', icon: '🔒', action: () => ipcRenderer.send('request-toggle-click-through') },
+        { label: 'Close', icon: '❌', action: () => closeCustomMenu() }
+    ];
+
+    buttons.forEach(btn => {
+        const button = document.createElement('button');
+        button.className = 'menu-btn';
+        button.dataset.label = btn.label;
+        button.innerText = btn.icon;
+        button.onclick = (e) => {
+            e.stopPropagation();
+            btn.action();
+            // Optional: Close menu after action?
+            // Usually context menus close after action.
+            // But Transform/Trim might want to stay open?
+            // Let's close it to mimic context menu behavior.
+            if (btn.label !== 'Close') closeCustomMenu();
+        };
+        menuBar.appendChild(button);
+    });
+
+    container.appendChild(menuBar);
+    document.body.appendChild(container);
+
+    // Close on click outside
+    const outsideClickListener = (e) => {
+        if (!menuBar.contains(e.target)) {
+            closeCustomMenu();
+        }
+    };
+
+    // Delay adding listener to avoid immediate close
+    setTimeout(() => {
+        document.addEventListener('click', outsideClickListener);
+    }, 50);
+
+    // Store listener to remove later
+    container._outsideClickListener = outsideClickListener;
+}
+
+function closeCustomMenu() {
+    const container = document.getElementById('custom-menu-container');
+    if (container) {
+        document.removeEventListener('click', container._outsideClickListener);
+        container.remove();
+        ipcRenderer.send('menu-closed');
+    }
+}
 
 function createTransformUI() {
     if (document.getElementById('transform-overlay')) return;
@@ -472,7 +640,9 @@ function startResize(e, pos) {
     document.addEventListener('mouseup', onMouseUp);
 }
 
-// IPC Listeners
+// IPC Listeners from Menu
+ipcRenderer.on('toggle-menu', () => createCustomMenu()); // New IPC for custom menu
+
 ipcRenderer.on('toggle-transform', () => toggleTransform(!transformMode));
 ipcRenderer.on('toggle-trim', () => toggleTrim(!trimMode));
 ipcRenderer.on('toggle-menu', () => toggleMenu(!menuOpen)); // New Listener

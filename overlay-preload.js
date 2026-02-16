@@ -382,6 +382,11 @@ function startTrim(e, pos) {
     const flushTrimUpdate = () => {
         if (pendingTrimUpdate.x !== 0 || pendingTrimUpdate.y !== 0 || pendingTrimUpdate.width !== 0 || pendingTrimUpdate.height !== 0) {
             ipcRenderer.send('trim-resize', pendingTrimUpdate);
+
+            // Sync DOM update with repaint cycle
+            const trimWrapper = document.getElementById('trim-content-wrapper') || document.body;
+            trimWrapper.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
+
             pendingTrimUpdate = { x: 0, y: 0, width: 0, height: 0 };
         }
         rafId = null;
@@ -406,7 +411,6 @@ function startTrim(e, pos) {
             cropValues.left += deltaX;
             currentDelta.x = deltaX; // Move window right
             currentDelta.width = -deltaX; // Shrink window
-            document.body.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
         } else if (pos === 'e') {
             cropValues.right -= deltaX; 
             currentDelta.width = deltaX;
@@ -415,7 +419,6 @@ function startTrim(e, pos) {
             cropValues.top += deltaY;
             currentDelta.y = deltaY; // Move window down
             currentDelta.height = -deltaY; // Shrink window
-            document.body.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
         } else if (pos === 's') {
             currentDelta.height = deltaY;
         }

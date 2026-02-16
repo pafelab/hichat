@@ -16,7 +16,7 @@ const menuStyles = `
         position: fixed;
         top: 50%;
         left: 50%;
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%) scale(var(--menu-scale, 1));
         z-index: 2147483647;
         font-family: sans-serif;
     }
@@ -116,16 +116,17 @@ const overlayStyles = `
     
     .resize-handle {
         position: absolute;
-        width: 20px;
-        height: 20px;
+        width: var(--handle-size, 20px);
+        height: var(--handle-size, 20px);
         background-color: #00b0ff;
         pointer-events: auto;
     }
     
-    .resize-handle.nw { top: -10px; left: -10px; cursor: nwse-resize; }
-    .resize-handle.ne { top: -10px; right: -10px; cursor: nesw-resize; }
-    .resize-handle.sw { bottom: -10px; left: -10px; cursor: nesw-resize; }
-    .resize-handle.se { bottom: -10px; right: -10px; cursor: nwse-resize; }
+    /* Calculate offset based on size (half size) */
+    .resize-handle.nw { top: calc(var(--handle-size, 20px) / -2); left: calc(var(--handle-size, 20px) / -2); cursor: nwse-resize; }
+    .resize-handle.ne { top: calc(var(--handle-size, 20px) / -2); right: calc(var(--handle-size, 20px) / -2); cursor: nesw-resize; }
+    .resize-handle.sw { bottom: calc(var(--handle-size, 20px) / -2); left: calc(var(--handle-size, 20px) / -2); cursor: nesw-resize; }
+    .resize-handle.se { bottom: calc(var(--handle-size, 20px) / -2); right: calc(var(--handle-size, 20px) / -2); cursor: nwse-resize; }
     
     .move-handle {
         position: absolute;
@@ -171,10 +172,11 @@ const overlayStyles = `
     }
     
     /* Side handles for cropping */
-    .trim-handle.n { top: -5px; left: 0; width: 100%; height: 10px; cursor: ns-resize; }
-    .trim-handle.s { bottom: -5px; left: 0; width: 100%; height: 10px; cursor: ns-resize; }
-    .trim-handle.w { left: -5px; top: 0; width: 10px; height: 100%; cursor: ew-resize; }
-    .trim-handle.e { right: -5px; top: 0; width: 10px; height: 100%; cursor: ew-resize; }
+    /* Use handle-size for thickness of edge handles */
+    .trim-handle.n { top: calc(var(--handle-size, 20px) / -4); left: 0; width: 100%; height: calc(var(--handle-size, 20px) / 2); cursor: ns-resize; }
+    .trim-handle.s { bottom: calc(var(--handle-size, 20px) / -4); left: 0; width: 100%; height: calc(var(--handle-size, 20px) / 2); cursor: ns-resize; }
+    .trim-handle.w { left: calc(var(--handle-size, 20px) / -4); top: 0; width: calc(var(--handle-size, 20px) / 2); height: 100%; cursor: ew-resize; }
+    .trim-handle.e { right: calc(var(--handle-size, 20px) / -4); top: 0; width: calc(var(--handle-size, 20px) / 2); height: 100%; cursor: ew-resize; }
 
     #trim-close {
         position: absolute;
@@ -201,7 +203,8 @@ const overlayStyles = `
         position: fixed;
         bottom: 20px;
         left: 50%;
-        transform: translateX(-50%);
+        transform: translateX(-50%) scale(var(--menu-scale, 1));
+        transform-origin: bottom center;
         background-color: rgba(32, 34, 37, 0.95);
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.1);
@@ -216,8 +219,8 @@ const overlayStyles = `
     }
 
     @keyframes slideUp {
-        from { transform: translate(-50%, 100%); opacity: 0; }
-        to { transform: translate(-50%, 0); opacity: 1; }
+        from { transform: translate(-50%, 100%) scale(var(--menu-scale, 1)); opacity: 0; }
+        to { transform: translate(-50%, 0) scale(var(--menu-scale, 1)); opacity: 1; }
     }
 
     .menu-btn {
@@ -783,6 +786,11 @@ function setupPickerEvents() {
 }
 
 // IPC Listeners from Menu
+ipcRenderer.on('apply-appearance', (event, { menuScale, handleSize }) => {
+    document.documentElement.style.setProperty('--menu-scale', menuScale);
+    document.documentElement.style.setProperty('--handle-size', handleSize + 'px');
+});
+
 ipcRenderer.on('toggle-menu', () => createCustomMenu()); // New IPC for custom menu
 
 ipcRenderer.on('toggle-transform', () => toggleTransform(!transformMode));

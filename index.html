@@ -117,6 +117,37 @@
                 <small>Key combination to open the management menu.</small>
             </div>
 
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Menu Scale: <span id="menu-scale-val">1.0</span></label>
+                    <input type="range" id="menu-scale" min="0.5" max="2.0" step="0.1" value="1.0">
+                </div>
+                <div class="form-group">
+                    <label>Handle Size: <span id="handle-size-val">20px</span></label>
+                    <input type="range" id="handle-size" min="10" max="50" step="2" value="20">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>UI Preview</label>
+                <div class="ui-preview-box">
+                    <div class="preview-menu-wrapper">
+                        <div class="preview-menu-bar" id="preview-menu">
+                            <span class="preview-btn">↔️</span>
+                            <span class="preview-btn">🎯</span>
+                            <span class="preview-btn">✂️</span>
+                            <span class="preview-btn">❌</span>
+                        </div>
+                    </div>
+                    <div class="preview-handle-wrapper">
+                        <div class="preview-trim-edge">
+                            <div class="preview-handle" id="preview-handle"></div>
+                        </div>
+                    </div>
+                </div>
+                <small>Preview of the overlay menu and resize handles.</small>
+            </div>
+
             <div class="form-group">
                 <label class="toggle-wrapper">
                     <input type="checkbox" id="hide-from-obs">

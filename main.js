@@ -243,7 +243,7 @@ function createTransparentWindow(opts) {
 
 
 ipcMain.on('launch-overlay', (event, data) => {
-    const { url, css, x, y, width, height, zoom, menuShortcut, hideFromObs, slUrl, slWidth, slHeight, slZoom, slCss } = data;
+    const { url, css, x, y, width, height, zoom, menuShortcut, hideFromObs, slUrl, slWidth, slHeight, slZoom, slCss, menuScale, handleSize } = data;
     
     saveConfig(data);
 
@@ -291,6 +291,13 @@ ipcMain.on('launch-overlay', (event, data) => {
         overlayWindow.webContents.on('did-finish-load', () => {
             if (zoom) overlayWindow.webContents.setZoomFactor(zoom);
             if (css) overlayWindow.webContents.insertCSS(css).catch(e => console.error('Failed to inject CSS:', e));
+
+            // Apply Appearance Settings
+            overlayWindow.webContents.send('apply-appearance', {
+                menuScale: menuScale || 1.0,
+                handleSize: handleSize || 20
+            });
+
             // Automatically enable Transform mode to allow moving/resizing
             overlayWindow.webContents.send('toggle-transform');
         });

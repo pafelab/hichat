@@ -22,6 +22,8 @@ document.getElementById('launch').addEventListener('click', () => {
     const slUrl = document.getElementById('sl-url').value;
     const slWidth = parseInt(document.getElementById('sl-width').value) || 600;
     const slHeight = parseInt(document.getElementById('sl-height').value) || 400;
+    const slZoom = parseFloat(document.getElementById('sl-zoom').value) || 1.0;
+    const slCss = document.getElementById('sl-css').value;
 
     if (!url && !slUrl) {
         setStatus('กรุณาใส่ลิ้งก์อย่างน้อยหนึ่งช่อง (Please enter at least one URL)', true);
@@ -36,7 +38,7 @@ document.getElementById('launch').addEventListener('click', () => {
 
     window.api.send('launch-overlay', { 
         url, css, x, y, width, height, zoom, menuShortcut,
-        slUrl, slWidth, slHeight
+        slUrl, slWidth, slHeight, slZoom, slCss
     });
 
     setStatus('Overlay launched!');
@@ -49,6 +51,10 @@ document.getElementById('launch').addEventListener('click', () => {
 
 document.getElementById('zoom').addEventListener('input', (e) => {
     document.getElementById('zoom-val').innerText = e.target.value;
+});
+
+document.getElementById('sl-zoom').addEventListener('input', (e) => {
+    document.getElementById('sl-zoom-val').innerText = e.target.value;
 });
 
 // Load settings
@@ -68,4 +74,9 @@ window.api.on('load-settings', (settings) => {
     if (settings.slUrl) document.getElementById('sl-url').value = settings.slUrl;
     if (settings.slWidth) document.getElementById('sl-width').value = settings.slWidth;
     if (settings.slHeight) document.getElementById('sl-height').value = settings.slHeight;
+    if (settings.slZoom) {
+        document.getElementById('sl-zoom').value = settings.slZoom;
+        document.getElementById('sl-zoom-val').innerText = settings.slZoom;
+    }
+    if (settings.slCss) document.getElementById('sl-css').value = settings.slCss;
 });

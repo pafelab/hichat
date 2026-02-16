@@ -11,8 +11,9 @@ const CONFIG_PATH = path.join(app.getPath('userData'), 'config.json');
 let cachedConfig = null;
 
 async function loadConfig() {
-    if (cachedConfig) return cachedConfig;
-
+    if (cachedConfig) {
+        return cachedConfig;
+    }
     try {
         const data = await fs.promises.readFile(CONFIG_PATH, 'utf-8');
         cachedConfig = JSON.parse(data);

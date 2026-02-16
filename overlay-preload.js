@@ -2,6 +2,7 @@ const { ipcRenderer } = require('electron');
 
 let transformMode = false;
 let trimMode = false;
+let pickerMode = false;
 let menuOpen = false;
 let transformOverlay = null;
 
@@ -188,6 +189,13 @@ const overlayStyles = `
         pointer-events: auto;
     }
 
+    .picker-highlight {
+        outline: 4px solid #ff0000 !important;
+        background-color: rgba(255, 0, 0, 0.1) !important;
+        cursor: crosshair !important;
+        z-index: 2147483646 !important; /* Just below menu */
+    }
+
     /* Custom Menu Styles */
     #custom-menu-overlay {
         position: fixed;
@@ -279,6 +287,7 @@ function createCustomMenu() {
     // Define buttons
     const buttons = [
         { label: 'Transform', icon: '↔️', action: () => toggleTransform(!transformMode) },
+        { label: 'Pick', icon: '🎯', action: () => togglePicker(!pickerMode) },
         { label: 'Trim', icon: '✂️', action: () => toggleTrim(!trimMode) },
         { label: 'Reset', icon: '🔄', action: () => {
             cropValues = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -328,12 +337,14 @@ function createCustomMenu() {
     container._outsideClickListener = outsideClickListener;
 }
 
-function closeCustomMenu() {
+function closeCustomMenu(restoreClickThrough = true) {
     const container = document.getElementById('custom-menu-container');
     if (container) {
         document.removeEventListener('click', container._outsideClickListener);
         container.remove();
-        ipcRenderer.send('menu-closed');
+        if (restoreClickThrough && !pickerMode) {
+            ipcRenderer.send('menu-closed');
+        }
     }
 }
 
@@ -411,6 +422,12 @@ function createMenuUI() {
             label: 'Transform (Resize Window)',
             action: () => toggleTransform(!transformMode),
             active: () => transformMode
+        },
+        {
+            icon: '🎯',
+            label: 'Pick Element (Smart Crop)',
+            action: () => togglePicker(!pickerMode),
+            active: () => pickerMode
         },
         {
             icon: '✂️',
@@ -513,7 +530,10 @@ function toggleMenu(active) {
         ipcRenderer.send('menu-opened'); // Tell main to disable click-through
     } else {
         removeMenuUI();
-        ipcRenderer.send('menu-closed'); // Tell main to enable click-through
+        // Only restore click-through if we are not in a mode that needs interaction
+        if (!pickerMode) {
+            ipcRenderer.send('menu-closed'); // Tell main to enable click-through
+        }
     }
 }
 
@@ -638,6 +658,128 @@ function startResize(e, pos) {
 
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
+}
+
+// Picker Logic
+let pickerCleanup = null;
+
+function togglePicker(active) {
+    if (active) {
+        // Disable other modes
+        if (transformMode) toggleTransform(false);
+        if (trimMode) toggleTrim(false);
+
+        pickerMode = true;
+        injectStyles(); // Ensure CSS is present
+        setupPickerEvents();
+        ipcRenderer.send('menu-opened'); // Ensure we can click
+        document.body.style.cursor = 'crosshair';
+    } else {
+        pickerMode = false;
+        if (pickerCleanup) pickerCleanup();
+        pickerCleanup = null;
+        document.body.style.cursor = 'default';
+
+        // Remove highlight
+        const highlighted = document.querySelector('.picker-highlight');
+        if (highlighted) highlighted.classList.remove('picker-highlight');
+
+        // Restore click-through state if menu is closed
+        if (!menuOpen) {
+            ipcRenderer.send('menu-closed');
+        }
+    }
+
+    // Refresh menu UI to show active state
+    if (menuOpen) {
+        removeMenuUI();
+        createMenuUI();
+    }
+}
+
+function setupPickerEvents() {
+    const onMouseMove = (e) => {
+        // cleanup previous
+        const prev = document.querySelector('.picker-highlight');
+        if (prev && prev !== e.target) {
+            prev.classList.remove('picker-highlight');
+        }
+
+        // Ignore UI elements
+        if (e.target.closest('#custom-menu-container') ||
+            e.target.closest('#custom-menu-overlay') ||
+            e.target.closest('#trim-overlay') ||
+            e.target.closest('#transform-overlay')) {
+            return;
+        }
+
+        e.target.classList.add('picker-highlight');
+    };
+
+    const onClick = (e) => {
+        // Ignore clicks on menu
+        if (e.target.closest('#custom-menu-container') ||
+            e.target.closest('#custom-menu-overlay')) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const rect = e.target.getBoundingClientRect();
+        const scrollX = window.scrollX;
+        const scrollY = window.scrollY;
+
+        // Ensure Original Size is captured
+        if (originalSize.width === 0) {
+             originalSize.width = Math.max(window.innerWidth, document.documentElement.scrollWidth);
+             originalSize.height = Math.max(window.innerHeight, document.documentElement.scrollHeight);
+        }
+
+        // Calculate Visual Deltas
+        const deltaX = rect.left;
+        const deltaY = rect.top;
+        const deltaW = rect.width - window.innerWidth;
+        const deltaH = rect.height - window.innerHeight;
+
+        // Update Crop Values
+        cropValues.left += (deltaX + scrollX);
+        cropValues.top += (deltaY + scrollY);
+
+        // Apply Body Transform
+        applyTrimCSS();
+
+        // Resize Window
+        ipcRenderer.send('trim-resize', {
+            x: deltaX,
+            y: deltaY,
+            width: deltaW,
+            height: deltaH
+        });
+
+        // Switch to Trim Mode
+        togglePicker(false);
+
+        // Activate Trim Mode UI if not active
+        if (!trimMode) {
+            trimMode = true;
+            createTrimUI();
+        }
+    };
+
+    const onKeyDown = (e) => {
+        if (e.key === 'Escape') {
+            togglePicker(false);
+        }
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('click', onClick, true); // Capture phase
+    document.addEventListener('keydown', onKeyDown);
+
+    pickerCleanup = () => {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('click', onClick, true);
+        document.removeEventListener('keydown', onKeyDown);
+    };
 }
 
 // IPC Listeners from Menu

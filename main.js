@@ -243,7 +243,7 @@ function createTransparentWindow(opts) {
 
 
 ipcMain.on('launch-overlay', (event, data) => {
-    const { url, css, x, y, width, height, zoom, menuShortcut, slUrl, slWidth, slHeight, slZoom, slCss } = data;
+    const { url, css, x, y, width, height, zoom, menuShortcut, hideFromObs, slUrl, slWidth, slHeight, slZoom, slCss } = data;
     
     saveConfig(data);
 
@@ -282,6 +282,10 @@ ipcMain.on('launch-overlay', (event, data) => {
             x: x, y: y, width: width, height: height,
             clickThrough: false // Start interactive so it can be moved/resized
         });
+
+        // Apply Content Protection if requested (hides from OBS/Capture)
+        overlayWindow.setContentProtection(!!hideFromObs);
+
         overlayWindow.on('closed', () => overlayWindow = null);
         overlayWindow.loadURL(embedUrl);
         overlayWindow.webContents.on('did-finish-load', () => {

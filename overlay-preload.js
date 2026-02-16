@@ -2,13 +2,14 @@ const { ipcRenderer } = require('electron');
 
 let transformMode = false;
 let trimMode = false;
+let menuOpen = false;
 let transformOverlay = null;
 
 // State for Trim Mode
 let cropValues = { top: 0, right: 0, bottom: 0, left: 0 };
 let originalSize = { width: 0, height: 0 };
 
-// CSS for the transform overlay
+// CSS for the transform overlay and menu
 const overlayStyles = `
     #transform-overlay {
         position: fixed;
@@ -96,6 +97,76 @@ const overlayStyles = `
         font-weight: bold;
         pointer-events: auto;
     }
+
+    /* Custom Menu Styles */
+    #custom-menu-overlay {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(32, 34, 37, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 50px;
+        padding: 8px 16px;
+        display: flex;
+        gap: 12px;
+        z-index: 100000;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        pointer-events: auto;
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+        from { transform: translate(-50%, 100%); opacity: 0; }
+        to { transform: translate(-50%, 0); opacity: 1; }
+    }
+
+    .menu-btn {
+        background: transparent;
+        border: none;
+        color: #dcddde;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .menu-btn:hover {
+        background-color: rgba(255,255,255,0.1);
+        color: #fff;
+        transform: scale(1.1);
+    }
+
+    .menu-btn.active {
+        color: #5865F2;
+        background-color: rgba(88, 101, 242, 0.1);
+    }
+
+    .menu-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #000;
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        margin-bottom: 8px;
+        transition: opacity 0.2s;
+    }
+
+    .menu-btn:hover .menu-tooltip {
+        opacity: 1;
+    }
 `;
 
 function createTransformUI() {
@@ -133,10 +204,7 @@ function createTrimUI() {
     injectStyles();
 
     // Lock Body Size if not already locked
-    // If starting trim mode, we capture the current size as the "Source Size"
     if (!trimMode) {
-        // Use scrollWidth/Height to capture full content size if larger than window
-        // But typically we want the current visible viewport to be locked.
         originalSize.width = Math.max(window.innerWidth, document.documentElement.scrollWidth);
         originalSize.height = Math.max(window.innerHeight, document.documentElement.scrollHeight);
         applyTrimCSS();
@@ -162,6 +230,66 @@ function createTrimUI() {
     setupTrimEvents();
 }
 
+function createMenuUI() {
+    if (document.getElementById('custom-menu-overlay')) return;
+    injectStyles();
+
+    const menu = document.createElement('div');
+    menu.id = 'custom-menu-overlay';
+
+    const items = [
+        {
+            icon: '📐',
+            label: 'Transform (Resize Window)',
+            action: () => toggleTransform(!transformMode),
+            active: () => transformMode
+        },
+        {
+            icon: '✂️',
+            label: 'Trim (Crop Edges)',
+            action: () => toggleTrim(!trimMode),
+            active: () => trimMode
+        },
+        {
+            icon: '🔄',
+            label: 'Reset Trim',
+            action: () => {
+                cropValues = { top: 0, right: 0, bottom: 0, left: 0 };
+                document.body.style.setProperty('transform', 'translate(0px, 0px)', 'important');
+                toggleMenu(false);
+            }
+        },
+        {
+            icon: '🖱️',
+            label: 'Toggle Click-Through',
+            action: () => ipcRenderer.send('request-toggle-click-through')
+        },
+        {
+            icon: '❌',
+            label: 'Close Menu',
+            action: () => toggleMenu(false)
+        }
+    ];
+
+    items.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'menu-btn';
+        if (item.active && item.active()) btn.classList.add('active');
+
+        btn.innerHTML = `${item.icon}<div class="menu-tooltip">${item.label}</div>`;
+        btn.onclick = item.action;
+
+        menu.appendChild(btn);
+    });
+
+    document.documentElement.appendChild(menu);
+}
+
+function removeMenuUI() {
+    const menu = document.getElementById('custom-menu-overlay');
+    if (menu) menu.remove();
+}
+
 function injectStyles() {
     if (!document.getElementById('transform-styles')) {
         const style = document.createElement('style');
@@ -182,58 +310,64 @@ function removeTrimUI() {
 }
 
 function toggleTransform(active) {
-    if (trimMode && active) toggleTrim(false); // Exclusive modes
+    if (trimMode && active) toggleTrim(false);
     transformMode = active;
     if (active) createTransformUI();
     else removeTransformUI();
+    // Refresh menu active states if open
+    if (menuOpen) {
+        removeMenuUI();
+        createMenuUI();
+    }
 }
 
 function toggleTrim(active) {
-    if (transformMode && active) toggleTransform(false); // Exclusive modes
+    if (transformMode && active) toggleTransform(false);
     
-    // Logic for initializing trim state is inside createTrimUI to handle toggling
     if (active) {
         trimMode = true;
         createTrimUI();
     } else {
-        // We keep trimMode = true logic-wise? 
-        // No, user wants to "Apply" and hide UI.
-        // But the "Crop" effect must persist.
-        // So we remove UI but don't reset variables.
-        trimMode = false; // "Mode" is off (UI hidden), but effect persists.
+        trimMode = false;
         removeTrimUI();
     }
-}
-function applyTrimCSS() {
-    // Create a wrapper div that will hold all content and apply the crop
-    let trimWrapper = document.getElementById('trim-content-wrapper');
-    
-    if (!trimWrapper) {
-        // First time - wrap all body content
-        trimWrapper = document.createElement('div');
-        trimWrapper.id = 'trim-content-wrapper';
-        
-        // Move all body children into wrapper
-        while (document.body.firstChild) {
-            trimWrapper.appendChild(document.body.firstChild);
-        }
-        document.body.appendChild(trimWrapper);
+    // Refresh menu active states if open
+    if (menuOpen) {
+        removeMenuUI();
+        createMenuUI();
     }
+}
+
+function toggleMenu(active) {
+    menuOpen = active;
+    if (active) {
+        createMenuUI();
+        ipcRenderer.send('menu-opened'); // Tell main to disable click-through
+    } else {
+        removeMenuUI();
+        ipcRenderer.send('menu-closed'); // Tell main to enable click-through
+    }
+}
+
+function applyTrimCSS() {
+    // Apply styles directly to document.body instead of wrapping content
+    // This fixes issues with YouTube Live Chat layout
     
-    // Style the wrapper to freeze content and apply crop offset
-    trimWrapper.style.setProperty('position', 'fixed', 'important');
-    trimWrapper.style.setProperty('width', `${originalSize.width}px`, 'important');
-    trimWrapper.style.setProperty('height', `${originalSize.height}px`, 'important');
-    trimWrapper.style.setProperty('left', '0', 'important');
-    trimWrapper.style.setProperty('top', '0', 'important');
-    trimWrapper.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
-    trimWrapper.style.setProperty('overflow', 'hidden', 'important');
+    // Ensure HTML is hidden overflow
+    document.documentElement.style.setProperty('overflow', 'hidden', 'important');
     
-    // Prevent body from scrolling or resizing
+    // Lock Body Size to original captured size
+    document.body.style.setProperty('position', 'absolute', 'important');
+    document.body.style.setProperty('width', `${originalSize.width}px`, 'important');
+    document.body.style.setProperty('height', `${originalSize.height}px`, 'important');
+    document.body.style.setProperty('left', '0', 'important');
+    document.body.style.setProperty('top', '0', 'important');
     document.body.style.setProperty('margin', '0', 'important');
     document.body.style.setProperty('padding', '0', 'important');
     document.body.style.setProperty('overflow', 'hidden', 'important');
-    document.documentElement.style.setProperty('overflow', 'hidden', 'important');
+
+    // Apply transform
+    document.body.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
 }
 
 // Dragging Logic (Transform)
@@ -254,7 +388,6 @@ function setupDragEvents(element) {
     document.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
 
-        // Accumulate deltas directly
         pendingDeltaX += (e.screenX - startX);
         pendingDeltaY += (e.screenY - startY);
 
@@ -339,23 +472,17 @@ function startResize(e, pos) {
     document.addEventListener('mouseup', onMouseUp);
 }
 
-// IPC Listeners from Menu
+// IPC Listeners
 ipcRenderer.on('toggle-transform', () => toggleTransform(!transformMode));
 ipcRenderer.on('toggle-trim', () => toggleTrim(!trimMode));
+ipcRenderer.on('toggle-menu', () => toggleMenu(!menuOpen)); // New Listener
 
 ipcRenderer.on('reset-trim', () => {
     cropValues = { top: 0, right: 0, bottom: 0, left: 0 };
-    const trimWrapper = document.getElementById('trim-content-wrapper');
-    if (trimWrapper) {
-        trimWrapper.style.setProperty('transform', 'translate(0px, 0px)', 'important');
-    }
+    document.body.style.setProperty('transform', 'translate(0px, 0px)', 'important');
 });
 
 ipcRenderer.on('toggle-click-through', () => {
-    // We need to ask main process to toggle the window state
-    // But since main sent this to us, it expects us to handle it or bounce it back with state?
-    // Let's assume we maintain the state here or just ask main to toggle.
-    // For simplicity, let's send a message to main to toggle.
     ipcRenderer.send('request-toggle-click-through');
 });
 
@@ -391,36 +518,25 @@ function startTrim(e, pos) {
         const deltaX = ev.screenX - startX;
         const deltaY = ev.screenY - startY;
 
-        // Logic:
-        // If 'w' (left handle):
-        //   Dragging Right (+x): Crop Left increases. Window X increases. Window Width decreases.
-        //   Dragging Left (-x): Crop Left decreases. Window X decreases. Window Width increases.
-        // If 'e' (right handle):
-        //   Dragging Right (+x): Window Width increases.
-        //   Dragging Left (-x): Window Width decreases.
-        
-        // We calculate delta to apply to crop
         let currentDelta = { x: 0, y: 0, width: 0, height: 0 };
         
         if (pos === 'w') {
             cropValues.left += deltaX;
-            currentDelta.x = deltaX; // Move window right
-            currentDelta.width = -deltaX; // Shrink window
+            currentDelta.x = deltaX;
+            currentDelta.width = -deltaX;
             document.body.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
         } else if (pos === 'e') {
             cropValues.right -= deltaX; 
             currentDelta.width = deltaX;
-            // No content shift needed for right edge
         } else if (pos === 'n') {
             cropValues.top += deltaY;
-            currentDelta.y = deltaY; // Move window down
-            currentDelta.height = -deltaY; // Shrink window
+            currentDelta.y = deltaY;
+            currentDelta.height = -deltaY;
             document.body.style.setProperty('transform', `translate(-${cropValues.left}px, -${cropValues.top}px)`, 'important');
         } else if (pos === 's') {
             currentDelta.height = deltaY;
         }
 
-        // Accumulate deltas
         pendingTrimUpdate.x += currentDelta.x;
         pendingTrimUpdate.y += currentDelta.y;
         pendingTrimUpdate.width += currentDelta.width;
@@ -442,7 +558,6 @@ function startTrim(e, pos) {
             cancelAnimationFrame(rafId);
             rafId = null;
         }
-        // Ensure final update is sent
         flushTrimUpdate();
     };
 

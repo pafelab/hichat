@@ -1,3 +1,13 @@
+function setStatus(msg, isError = false) {
+    const statusEl = document.getElementById('status');
+    statusEl.innerText = msg;
+    if (isError) {
+        statusEl.classList.add('error');
+    } else {
+        statusEl.classList.remove('error');
+    }
+}
+
 document.getElementById('launch').addEventListener('click', () => {
     const url = document.getElementById('url').value;
     const css = document.getElementById('css').value;
@@ -12,21 +22,39 @@ document.getElementById('launch').addEventListener('click', () => {
     const slUrl = document.getElementById('sl-url').value;
     const slWidth = parseInt(document.getElementById('sl-width').value) || 600;
     const slHeight = parseInt(document.getElementById('sl-height').value) || 400;
+    const slZoom = parseFloat(document.getElementById('sl-zoom').value) || 1.0;
+    const slCss = document.getElementById('sl-css').value;
 
     if (!url && !slUrl) {
-        alert('กรุณาใส่ลิ้งก์อย่างน้อยหนึ่งช่อง (Please enter at least one URL)');
+        setStatus('กรุณาใส่ลิ้งก์อย่างน้อยหนึ่งช่อง (Please enter at least one URL)', true);
         return;
     }
 
+    const launchBtn = document.getElementById('launch');
+    const originalText = launchBtn.innerText;
+
+    launchBtn.disabled = true;
+    launchBtn.innerText = 'Launching...';
+
     window.api.send('launch-overlay', { 
         url, css, x, y, width, height, zoom, menuShortcut,
-        slUrl, slWidth, slHeight
+        slUrl, slWidth, slHeight, slZoom, slCss
     });
-    document.getElementById('status').innerText = 'Overlay launched!';
+
+    setStatus('Overlay launched!');
+
+    setTimeout(() => {
+        launchBtn.disabled = false;
+        launchBtn.innerText = originalText;
+    }, 2000);
 });
 
 document.getElementById('zoom').addEventListener('input', (e) => {
     document.getElementById('zoom-val').innerText = e.target.value;
+});
+
+document.getElementById('sl-zoom').addEventListener('input', (e) => {
+    document.getElementById('sl-zoom-val').innerText = e.target.value;
 });
 
 // Load settings
@@ -46,4 +74,9 @@ window.api.on('load-settings', (settings) => {
     if (settings.slUrl) document.getElementById('sl-url').value = settings.slUrl;
     if (settings.slWidth) document.getElementById('sl-width').value = settings.slWidth;
     if (settings.slHeight) document.getElementById('sl-height').value = settings.slHeight;
+    if (settings.slZoom) {
+        document.getElementById('sl-zoom').value = settings.slZoom;
+        document.getElementById('sl-zoom-val').innerText = settings.slZoom;
+    }
+    if (settings.slCss) document.getElementById('sl-css').value = settings.slCss;
 });

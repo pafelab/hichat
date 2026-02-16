@@ -8,20 +8,28 @@ let alertWindow;
 
 const CONFIG_PATH = path.join(app.getPath('userData'), 'config.json');
 
-function loadConfig() {
+let cachedConfig = null;
+
+async function loadConfig() {
+    if (cachedConfig) {
+        return cachedConfig;
+    }
     try {
-        if (fs.existsSync(CONFIG_PATH)) {
-            return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
-        }
+        const data = await fs.promises.readFile(CONFIG_PATH, 'utf-8');
+        cachedConfig = JSON.parse(data);
+        return cachedConfig;
     } catch (error) {
-        console.error('Error loading config:', error);
+        if (error.code !== 'ENOENT') {
+            console.error('Error loading config:', error);
+        }
     }
     return null;
 }
 
-function saveConfig(data) {
+async function saveConfig(data) {
+    cachedConfig = data;
     try {
-        fs.writeFileSync(CONFIG_PATH, JSON.stringify(data, null, 2));
+        await fs.promises.writeFile(CONFIG_PATH, JSON.stringify(data, null, 2));
     } catch (error) {
         console.error('Error saving config:', error);
     }
@@ -40,8 +48,8 @@ function createConfigWindow() {
 
     configWindow.loadFile('index.html');
 
-    configWindow.webContents.on('did-finish-load', () => {
-        const config = loadConfig();
+    configWindow.webContents.on('did-finish-load', async () => {
+        const config = await loadConfig();
         if (config) {
             configWindow.webContents.send('load-settings', config);
         }
@@ -156,26 +164,14 @@ ipcMain.on('trim-resize', (event, { x, y, width, height }) => {
 ipcMain.on('request-toggle-click-through', (event) => {
     const senderWindow = BrowserWindow.fromWebContents(event.sender);
     if (senderWindow) {
-        // Toggle ignore mouse events.
-        // We need to know current state. We can store it on the window object or toggle.
-        // Electron doesn't have a getter for ignoreMouseEvents state easily.
-        // Let's assume default is TRUE (click-through).
-
-        // However, we just came from a menu click, which temporarily disabled it.
-        // The menu's `menu-will-close` handler re-enables it to TRUE after 100ms.
-
-        // If the user clicked "Toggle Click-Through", they want to FLIP the persistent state.
-
+        // Toggle persistent state
         const currentState = senderWindow._clickThrough !== false; // Default true
         const newState = !currentState;
         senderWindow._clickThrough = newState;
 
-        // Apply new state
-        senderWindow.setIgnoreMouseEvents(newState, { forward: true });
-
-        // IMPORTANT: The menu close handler will try to set it to TRUE.
-        // We need to override or update that logic.
-        // But the menu logic is inside createTransparentWindow.
+        // We don't apply it immediately because if the menu is open,
+        // we want to keep the window interactive until the menu closes.
+        // The 'menu-closed' handler will apply this new state.
     }
 });
 
@@ -183,8 +179,9 @@ ipcMain.on('request-toggle-click-through', (event) => {
 // Helper to create transparent window
 // Helper to create transparent window
 function createTransparentWindow(opts) {
+    const { clickThrough = true, ...windowOpts } = opts;
     const win = new BrowserWindow({
-        ...opts,
+        ...windowOpts,
         frame: false,
         transparent: true,
         alwaysOnTop: true,
@@ -199,9 +196,9 @@ function createTransparentWindow(opts) {
 
     win.setAlwaysOnTop(true, 'screen-saver');
     
-    // CRITICAL: Enable click-through by default
-    win.setIgnoreMouseEvents(true, { forward: true });
-    win._clickThrough = true; // Track state
+    // CRITICAL: Enable click-through by default, unless specified otherwise
+    win.setIgnoreMouseEvents(clickThrough, { forward: true });
+    win._clickThrough = clickThrough; // Track state
 
     win.on('closed', () => {
         // Handled by caller
@@ -216,10 +213,15 @@ function createTransparentWindow(opts) {
         win.webContents.send('toggle-menu');
     };
 
-    // Listen for show-menu event from renderer
+    // Listen for menu events from renderer
     win.webContents.on('ipc-message', (event, channel) => {
-        if (channel === 'show-context-menu') {
-            showContextMenu();
+        if (channel === 'menu-opened') {
+            // Menu is open, we need to interact with it
+            win.setIgnoreMouseEvents(false);
+        } else if (channel === 'menu-closed') {
+            // Menu is closed, restore persistent state
+            const shouldIgnore = win._clickThrough !== false;
+            win.setIgnoreMouseEvents(shouldIgnore, { forward: true });
         }
         if (channel === 'menu-closed') {
             // Restore click-through state when menu is closed
@@ -234,14 +236,14 @@ function createTransparentWindow(opts) {
     win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
     
     // Expose menu function
-    win.openContextMenu = showContextMenu;
+    win.openContextMenu = toggleCustomMenu;
 
     return win;
 }
 
 
 ipcMain.on('launch-overlay', (event, data) => {
-    const { url, css, x, y, width, height, zoom, menuShortcut, slUrl, slWidth, slHeight } = data;
+    const { url, css, x, y, width, height, zoom, menuShortcut, slUrl, slWidth, slHeight, slZoom, slCss } = data;
     
     saveConfig(data);
 
@@ -277,13 +279,16 @@ ipcMain.on('launch-overlay', (event, data) => {
 
     if (embedUrl) {
         overlayWindow = createTransparentWindow({
-            x: x, y: y, width: width, height: height
+            x: x, y: y, width: width, height: height,
+            clickThrough: false // Start interactive so it can be moved/resized
         });
         overlayWindow.on('closed', () => overlayWindow = null);
         overlayWindow.loadURL(embedUrl);
         overlayWindow.webContents.on('did-finish-load', () => {
             if (zoom) overlayWindow.webContents.setZoomFactor(zoom);
             if (css) overlayWindow.webContents.insertCSS(css).catch(e => console.error('Failed to inject CSS:', e));
+            // Automatically enable Transform mode to allow moving/resizing
+            overlayWindow.webContents.send('toggle-transform');
         });
     }
 
@@ -315,8 +320,11 @@ ipcMain.on('launch-overlay', (event, data) => {
         });
         alertWindow.on('closed', () => alertWindow = null);
         alertWindow.loadURL(streamlabsLink);
-        // Streamlabs usually doesn't need custom CSS or Zoom, but we could add if needed.
-        // It should be transparent by default.
+
+        alertWindow.webContents.on('did-finish-load', () => {
+            if (slZoom) alertWindow.webContents.setZoomFactor(slZoom);
+            if (slCss) alertWindow.webContents.insertCSS(slCss).catch(e => console.error('Failed to inject Streamlabs CSS:', e));
+        });
     }
 });
 

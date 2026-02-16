@@ -60,6 +60,8 @@ launchBtn.addEventListener('click', () => {
     // Settings
     const menuShortcut = document.getElementById('menu-shortcut').value || 'Shift+F1';
     const hideFromObs = document.getElementById('hide-from-obs').checked;
+    const menuScale = parseFloat(document.getElementById('menu-scale').value) || 1.0;
+    const handleSize = parseInt(document.getElementById('handle-size').value) || 20;
 
     if (!url && !slUrl) {
         setStatus('Please enter at least one URL (YouTube/Twitch or Streamlabs)', true);
@@ -75,7 +77,8 @@ launchBtn.addEventListener('click', () => {
     if (window.api) {
         window.api.send('launch-overlay', {
             url, css, x, y, width, height, zoom, menuShortcut, hideFromObs,
-            slUrl, slWidth, slHeight, slZoom, slCss
+            slUrl, slWidth, slHeight, slZoom, slCss,
+            menuScale, handleSize
         });
     } else {
         console.warn('Electron API not available');
@@ -178,6 +181,16 @@ if (window.api) {
             if (displayShortcut) displayShortcut.textContent = settings.menuShortcut;
         }
         if (settings.hideFromObs) document.getElementById('hide-from-obs').checked = settings.hideFromObs;
+    if (settings.menuScale) {
+        document.getElementById('menu-scale').value = settings.menuScale;
+        document.getElementById('menu-scale-val').innerText = settings.menuScale;
+        updatePreview();
+    }
+    if (settings.handleSize) {
+        document.getElementById('handle-size').value = settings.handleSize;
+        document.getElementById('handle-size-val').innerText = settings.handleSize + 'px';
+        updatePreview();
+    }
 
         // Streamlabs
         if (settings.slUrl) document.getElementById('sl-url').value = settings.slUrl;
@@ -194,20 +207,45 @@ if (window.api) {
 // --- Coordinate Pad Logic ---
 function setupCoordinatePad() {
     const pad = document.getElementById('xy-pad');
+    const handle = pad.querySelector('.xy-handle');
     const xInput = document.getElementById('x');
     const yInput = document.getElementById('y');
 
-    if (!pad || !xInput || !yInput) return;
+    if (!pad || !handle || !xInput || !yInput) return;
 
     let isDragging = false;
     let startX, startY;
+    const padRect = pad.getBoundingClientRect();
+    const centerX = padRect.width / 2;
+    const centerY = padRect.height / 2;
+
+    const updateHandle = (dx, dy) => {
+        // Clamp visually within the pad (approx 40px radius from center)
+        const maxDist = 40;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        let visualDx = dx;
+        let visualDy = dy;
+
+        if (dist > maxDist) {
+            const ratio = maxDist / dist;
+            visualDx = dx * ratio;
+            visualDy = dy * ratio;
+        }
+
+        handle.style.transform = `translate(calc(-50% + ${visualDx}px), calc(-50% + ${visualDy}px))`;
+    };
+
+    const resetHandle = () => {
+        handle.style.transform = `translate(-50%, -50%)`;
+    };
 
     pad.addEventListener('mousedown', (e) => {
         isDragging = true;
         startX = e.clientX;
         startY = e.clientY;
         document.body.style.cursor = 'move';
-        pad.classList.add('active'); // Visual feedback if needed
+        pad.classList.add('active');
     });
 
     window.addEventListener('mousemove', (e) => {
@@ -223,9 +261,17 @@ function setupCoordinatePad() {
             xInput.value = currentX + dx;
             yInput.value = currentY + dy;
 
-            // Reset start to current to accumulate changes (relative drag)
+            // Reset start to current for accumulation
             startX = e.clientX;
             startY = e.clientY;
+
+            // For visual handle, we want it to feel like it's being pulled
+            // But since we reset startX/Y, dx is always small per frame.
+            // A true joystick would need an anchor.
+            // Let's create a "virtual anchor" effect by tracking total displacement from mouse down?
+            // No, the user wants "drag to adjust".
+            // Just showing the handle offset slightly in the direction of movement is enough feedback.
+            updateHandle(dx * 2, dy * 2); // Amplify slightly for visibility
         }
     });
 
@@ -234,8 +280,47 @@ function setupCoordinatePad() {
             isDragging = false;
             document.body.style.cursor = '';
             pad.classList.remove('active');
+            resetHandle();
         }
     });
+
+    // Also reset on mouseleave just in case
+    pad.addEventListener('mouseleave', () => {
+        if (isDragging) {
+            isDragging = false;
+            document.body.style.cursor = '';
+            pad.classList.remove('active');
+            resetHandle();
+        }
+    });
+}
+
+// --- Preview Logic ---
+const menuScaleInput = document.getElementById('menu-scale');
+const handleSizeInput = document.getElementById('handle-size');
+const previewMenu = document.getElementById('preview-menu');
+const previewHandle = document.getElementById('preview-handle');
+
+function updatePreview() {
+    const scale = menuScaleInput.value;
+    const size = handleSizeInput.value;
+
+    document.getElementById('menu-scale-val').innerText = scale;
+    document.getElementById('handle-size-val').innerText = size + 'px';
+
+    if (previewMenu) {
+        previewMenu.style.transform = `scale(${scale})`;
+    }
+    if (previewHandle) {
+        previewHandle.style.width = `${size}px`;
+        previewHandle.style.height = `${size}px`;
+    }
+}
+
+if (menuScaleInput && handleSizeInput) {
+    menuScaleInput.addEventListener('input', updatePreview);
+    handleSizeInput.addEventListener('input', updatePreview);
+    updatePreview(); // Init
 }
 
 // --- CSS Syntax Highlighter ---

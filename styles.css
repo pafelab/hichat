@@ -452,3 +452,66 @@ footer {
 .token-value { color: #a78bfa; }
 .token-punctuation { color: #9ca3af; }
 .token-string { color: #34d399; }
+
+/* --- UI Preview --- */
+.ui-preview-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background-color: rgba(32, 34, 37, 0.5); /* Match overlay dark theme */
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    height: 120px;
+    overflow: hidden;
+    position: relative;
+}
+
+.preview-menu-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform-origin: center;
+}
+
+.preview-menu-bar {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.1); /* Pill look */
+    border-radius: 9999px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.preview-btn {
+    font-size: 1.25rem;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    background: transparent;
+    border-radius: 50%;
+}
+
+.preview-handle-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.preview-trim-edge {
+    width: 100px;
+    height: 4px;
+    background-color: #00ff00; /* Green for Trim */
+    position: relative;
+}
+
+.preview-handle {
+    background-color: #00ff00;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}

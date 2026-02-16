@@ -238,22 +238,12 @@ function applyTrimCSS() {
 
 // Dragging Logic (Transform)
 function setupDragEvents(element) {
-    let isDragging = false;
     let startX, startY;
     let rafId = null;
     let pendingDeltaX = 0;
     let pendingDeltaY = 0;
 
-    element.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        startX = e.screenX;
-        startY = e.screenY;
-        document.body.style.cursor = 'move';
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-
+    const onMouseMove = (e) => {
         // Accumulate deltas directly
         pendingDeltaX += (e.screenX - startX);
         pendingDeltaY += (e.screenY - startY);
@@ -271,10 +261,11 @@ function setupDragEvents(element) {
                 rafId = null;
             });
         }
-    });
+    };
 
-    document.addEventListener('mouseup', () => {
-        isDragging = false;
+    const onMouseUp = () => {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
         document.body.style.cursor = 'default';
 
         if (rafId) {
@@ -287,6 +278,14 @@ function setupDragEvents(element) {
             pendingDeltaX = 0;
             pendingDeltaY = 0;
         }
+    };
+
+    element.addEventListener('mousedown', (e) => {
+        startX = e.screenX;
+        startY = e.screenY;
+        document.body.style.cursor = 'move';
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
     });
 }
 

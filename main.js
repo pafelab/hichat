@@ -225,7 +225,7 @@ function createTransparentWindow(opts) {
 
 
 ipcMain.on('launch-overlay', (event, data) => {
-    const { url, css, x, y, width, height, zoom, menuShortcut, slUrl, slWidth, slHeight } = data;
+    const { url, css, x, y, width, height, zoom, menuShortcut, slUrl, slWidth, slHeight, slZoom, slCss } = data;
     
     saveConfig(data);
 
@@ -298,8 +298,11 @@ ipcMain.on('launch-overlay', (event, data) => {
         });
         alertWindow.on('closed', () => alertWindow = null);
         alertWindow.loadURL(streamlabsLink);
-        // Streamlabs usually doesn't need custom CSS or Zoom, but we could add if needed.
-        // It should be transparent by default.
+
+        alertWindow.webContents.on('did-finish-load', () => {
+            if (slZoom) alertWindow.webContents.setZoomFactor(slZoom);
+            if (slCss) alertWindow.webContents.insertCSS(slCss).catch(e => console.error('Failed to inject Streamlabs CSS:', e));
+        });
     }
 });
 

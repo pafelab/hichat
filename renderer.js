@@ -72,10 +72,14 @@ launchBtn.addEventListener('click', () => {
     launchBtn.innerText = '🚀 Launching...';
 
     // Send IPC
-    window.api.send('launch-overlay', { 
-        url, css, x, y, width, height, zoom, menuShortcut, hideFromObs,
-        slUrl, slWidth, slHeight, slZoom, slCss
-    });
+    if (window.api) {
+        window.api.send('launch-overlay', {
+            url, css, x, y, width, height, zoom, menuShortcut, hideFromObs,
+            slUrl, slWidth, slHeight, slZoom, slCss
+        });
+    } else {
+        console.warn('Electron API not available');
+    }
 
     setStatus('Overlay launched successfully!');
 
@@ -157,30 +161,213 @@ if (presetClearBtn) {
 
 
 // --- Load Settings (IPC) ---
-window.api.on('load-settings', (settings) => {
-    if (settings.url) document.getElementById('url').value = settings.url;
-    if (settings.css) document.getElementById('css').value = settings.css;
-    if (settings.x) document.getElementById('x').value = settings.x;
-    if (settings.y) document.getElementById('y').value = settings.y;
-    if (settings.width) document.getElementById('width').value = settings.width;
-    if (settings.height) document.getElementById('height').value = settings.height;
-    if (settings.zoom) {
-        document.getElementById('zoom').value = settings.zoom;
-        document.getElementById('zoom-val').innerText = settings.zoom;
-    }
-    if (settings.menuShortcut) {
-        document.getElementById('menu-shortcut').value = settings.menuShortcut;
-        if (displayShortcut) displayShortcut.textContent = settings.menuShortcut;
-    }
-    if (settings.hideFromObs) document.getElementById('hide-from-obs').checked = settings.hideFromObs;
+if (window.api) {
+    window.api.on('load-settings', (settings) => {
+        if (settings.url) document.getElementById('url').value = settings.url;
+        if (settings.css) document.getElementById('css').value = settings.css;
+        if (settings.x) document.getElementById('x').value = settings.x;
+        if (settings.y) document.getElementById('y').value = settings.y;
+        if (settings.width) document.getElementById('width').value = settings.width;
+        if (settings.height) document.getElementById('height').value = settings.height;
+        if (settings.zoom) {
+            document.getElementById('zoom').value = settings.zoom;
+            document.getElementById('zoom-val').innerText = settings.zoom;
+        }
+        if (settings.menuShortcut) {
+            document.getElementById('menu-shortcut').value = settings.menuShortcut;
+            if (displayShortcut) displayShortcut.textContent = settings.menuShortcut;
+        }
+        if (settings.hideFromObs) document.getElementById('hide-from-obs').checked = settings.hideFromObs;
 
-    // Streamlabs
-    if (settings.slUrl) document.getElementById('sl-url').value = settings.slUrl;
-    if (settings.slWidth) document.getElementById('sl-width').value = settings.slWidth;
-    if (settings.slHeight) document.getElementById('sl-height').value = settings.slHeight;
-    if (settings.slZoom) {
-        document.getElementById('sl-zoom').value = settings.slZoom;
-        document.getElementById('sl-zoom-val').innerText = settings.slZoom;
+        // Streamlabs
+        if (settings.slUrl) document.getElementById('sl-url').value = settings.slUrl;
+        if (settings.slWidth) document.getElementById('sl-width').value = settings.slWidth;
+        if (settings.slHeight) document.getElementById('sl-height').value = settings.slHeight;
+        if (settings.slZoom) {
+            document.getElementById('sl-zoom').value = settings.slZoom;
+            document.getElementById('sl-zoom-val').innerText = settings.slZoom;
+        }
+        if (settings.slCss) document.getElementById('sl-css').value = settings.slCss;
+    });
+}
+
+// --- Coordinate Pad Logic ---
+function setupCoordinatePad() {
+    const pad = document.getElementById('xy-pad');
+    const xInput = document.getElementById('x');
+    const yInput = document.getElementById('y');
+
+    if (!pad || !xInput || !yInput) return;
+
+    let isDragging = false;
+    let startX, startY;
+
+    pad.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        document.body.style.cursor = 'move';
+        pad.classList.add('active'); // Visual feedback if needed
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+
+        if (dx !== 0 || dy !== 0) {
+            let currentX = parseInt(xInput.value) || 0;
+            let currentY = parseInt(yInput.value) || 0;
+
+            xInput.value = currentX + dx;
+            yInput.value = currentY + dy;
+
+            // Reset start to current to accumulate changes (relative drag)
+            startX = e.clientX;
+            startY = e.clientY;
+        }
+    });
+
+    window.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            document.body.style.cursor = '';
+            pad.classList.remove('active');
+        }
+    });
+}
+
+// --- CSS Syntax Highlighter ---
+function escapeHtml(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function highlightCSS(code) {
+    let html = '';
+    let i = 0;
+    const len = code.length;
+
+    while (i < len) {
+        // Comments /* ... */
+        if (code.startsWith('/*', i)) {
+            const end = code.indexOf('*/', i + 2);
+            const content = (end === -1) ? code.slice(i) : code.slice(i, end + 2);
+            html += '<span class="token-comment">' + escapeHtml(content) + '</span>';
+            i += content.length;
+            continue;
+        }
+
+        // Strings "..." or '...'
+        if (code[i] === '"' || code[i] === "'") {
+            const quote = code[i];
+            let end = i + 1;
+            while (end < len && (code[end] !== quote || code[end-1] === '\\')) { // Simple escape check
+                end++;
+            }
+            if (end < len) end++;
+            const content = code.slice(i, end);
+            html += '<span class="token-string">' + escapeHtml(content) + '</span>';
+            i += content.length;
+            continue;
+        }
+
+        // Punctuation
+        if ('{}:;'.includes(code[i])) {
+            html += '<span class="token-punctuation">' + escapeHtml(code[i]) + '</span>';
+            i++;
+            continue;
+        }
+
+        // Whitespace
+        if (/\s/.test(code[i])) {
+            html += code[i];
+            i++;
+            continue;
+        }
+
+        // Word (Selector, Property, Value)
+        let j = i;
+        while (j < len && !' \t\n\r{}:;/"\''.includes(code[j])) {
+            j++;
+        }
+        const word = code.slice(i, j);
+
+        // Simple context heuristic
+        let k = j;
+        while (k < len && /\s/.test(code[k])) k++;
+
+        let type = 'token-value';
+
+        if (word.startsWith('.') || word.startsWith('#') || (k < len && code[k] === '{')) {
+            type = 'token-selector';
+        } else if (k < len && code[k] === ':') {
+            // Check if we are inside a declaration block? Hard to know.
+            // But usually 'property:'
+            type = 'token-property';
+        } else {
+            type = 'token-value';
+        }
+
+        html += '<span class="' + type + '">' + escapeHtml(word) + '</span>';
+        i = j;
     }
-    if (settings.slCss) document.getElementById('sl-css').value = settings.slCss;
+
+    // Ensure trailing newlines render in pre
+    if (code.endsWith('\n')) {
+        html += ' ';
+    }
+
+    return html;
+}
+
+function setupSyntaxHighlighter() {
+    const editors = [
+        { input: 'css', highlight: 'css-highlight' },
+        { input: 'sl-css', highlight: 'sl-css-highlight' }
+    ];
+
+    editors.forEach(editor => {
+        const textarea = document.getElementById(editor.input);
+        const code = document.getElementById(editor.highlight);
+
+        if (!textarea || !code) return;
+
+        const update = () => {
+            code.innerHTML = highlightCSS(textarea.value);
+            // Sync scroll
+            code.scrollTop = textarea.scrollTop;
+            code.scrollLeft = textarea.scrollLeft;
+        };
+
+        textarea.addEventListener('input', update);
+        textarea.addEventListener('scroll', () => {
+             code.scrollTop = textarea.scrollTop;
+             code.scrollLeft = textarea.scrollLeft;
+        });
+
+        // Sync initially and on preset buttons
+        update();
+
+        // Hook into preset buttons for #css
+        if (editor.input === 'css') {
+            const btns = document.querySelectorAll('.preset-buttons button');
+            btns.forEach(btn => btn.addEventListener('click', () => setTimeout(update, 0)));
+        }
+    });
+}
+
+// Initialize features
+document.addEventListener('DOMContentLoaded', () => {
+    setupCoordinatePad();
+    setupSyntaxHighlighter();
 });
+
+// Also run setup immediately in case DOM is already ready (script at end of body)
+setupCoordinatePad();
+setupSyntaxHighlighter();

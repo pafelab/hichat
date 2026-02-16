@@ -26,13 +26,23 @@
             </div>
 
             <div class="grid-2">
-                <div class="form-group">
-                    <label for="x">Position X</label>
-                    <input type="number" id="x" value="50">
-                </div>
-                <div class="form-group">
-                    <label for="y">Position Y</label>
-                    <input type="number" id="y" value="50">
+                <div class="form-group span-2">
+                    <label>Position & Adjustment</label>
+                    <div class="xy-control-wrapper">
+                        <div class="xy-inputs-col">
+                            <div class="xy-input-group">
+                                <label for="x">X</label>
+                                <input type="number" id="x" value="50">
+                            </div>
+                            <div class="xy-input-group">
+                                <label for="y">Y</label>
+                                <input type="number" id="y" value="50">
+                            </div>
+                        </div>
+                        <div class="xy-pad" id="xy-pad" title="Drag to adjust X/Y">
+                            <div class="xy-handle"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="width">Width</label>
@@ -56,7 +66,10 @@
                     <button type="button" class="btn-secondary" id="preset-twitch">Apply Twitch Preset</button>
                     <button type="button" class="btn-secondary" id="preset-clear">Clear</button>
                 </div>
-                <textarea id="css" placeholder="/* CSS to hide headers/footers */"></textarea>
+                <div class="code-editor-wrapper">
+                    <pre class="code-highlight" aria-hidden="true"><code id="css-highlight" class="language-css"></code></pre>
+                    <textarea id="css" class="code-input" spellcheck="false" placeholder="/* CSS to hide headers/footers */"></textarea>
+                </div>
             </div>
         </div>
     </div>
@@ -87,7 +100,10 @@
 
             <div class="form-group">
                 <label for="sl-css">Streamlabs Custom CSS</label>
-                <textarea id="sl-css" placeholder="body { background: transparent; }"></textarea>
+                <div class="code-editor-wrapper">
+                    <pre class="code-highlight" aria-hidden="true"><code id="sl-css-highlight" class="language-css"></code></pre>
+                    <textarea id="sl-css" class="code-input" spellcheck="false" placeholder="body { background: transparent; }"></textarea>
+                </div>
             </div>
         </div>
     </div>

@@ -14,6 +14,7 @@ const sourceListEl = document.getElementById('source-list');
 const propForm = document.getElementById('properties-form');
 const noSelectionMsg = document.getElementById('no-selection-msg');
 const launchBtn = document.getElementById('launch');
+const closeBtn = document.getElementById('close-app');
 const statusEl = document.getElementById('status');
 
 // Property Inputs
@@ -164,6 +165,9 @@ function updateLanguage(lang) {
 
     // Delete Btn
     if (deleteSourceBtn) deleteSourceBtn.innerText = t.btnDelete;
+    if (closeBtn && t.btnClose) {
+        closeBtn.innerText = "❌ " + t.btnClose;
+    }
 
     // Re-render source list (for delete button title if needed, but it's icon)
     // No text in list items besides name.
@@ -513,6 +517,14 @@ launchBtn.addEventListener('click', () => {
         launchBtn.innerText = '🚀 Launch / Update Overlay';
     }, 2000);
 });
+
+if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+        if (window.api) {
+            window.api.send('close-app');
+        }
+    });
+}
 
 // --- IPC Inbound ---
 

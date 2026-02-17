@@ -37,6 +37,7 @@ const translations = {
         "errorAddSource": "Please add at least one source.",
         "confirmDelete": "Are you sure you want to delete this source?",
         "btnDelete": "🗑️ Delete Source"
+        "btnClose": "Close Program"
     },
     "th": {
         "appTitle": "HiChat โอเวอร์เลย์",
@@ -76,6 +77,7 @@ const translations = {
         "errorAddSource": "กรุณาเพิ่มจออย่างน้อย 1 จอ",
         "confirmDelete": "คุณแน่ใจหรือไม่ที่จะลบจอนี้?",
         "btnDelete": "🗑️ ลบจอ"
+        "btnClose": "ปิดโปรแกรม"
     },
     "zh": {
         "appTitle": "HiChat 覆盖层",
@@ -115,6 +117,7 @@ const translations = {
         "errorAddSource": "请至少添加一个来源。",
         "confirmDelete": "您确定要删除此来源吗？",
         "btnDelete": "🗑️ 删除来源"
+        "btnClose": "关闭程序"
     },
     "ja": {
         "appTitle": "HiChat オーバーレイ",
@@ -154,6 +157,7 @@ const translations = {
         "errorAddSource": "少なくとも1つのソースを追加してください。",
         "confirmDelete": "このソースを削除してもよろしいですか？",
         "btnDelete": "🗑️ ソースを削除"
+        "btnClose": "プログラムを終了"
     },
     "de": {
         "appTitle": "HiChat Overlay",
@@ -193,6 +197,7 @@ const translations = {
         "errorAddSource": "Bitte fügen Sie mindestens eine Quelle hinzu.",
         "confirmDelete": "Sind Sie sicher, dass Sie diese Quelle löschen möchten?",
         "btnDelete": "🗑️ Quelle löschen"
+        "btnClose": "Programm schließen"
     },
     "it": {
         "appTitle": "HiChat Overlay",
@@ -232,6 +237,7 @@ const translations = {
         "errorAddSource": "Aggiungi almeno una sorgente.",
         "confirmDelete": "Sei sicuro di voler eliminare questa sorgente?",
         "btnDelete": "🗑️ Elimina Sorgente"
+        "btnClose": "Chiudi programma"
     },
     "es": {
         "appTitle": "HiChat Overlay",
@@ -271,6 +277,7 @@ const translations = {
         "errorAddSource": "Por favor, agrega al menos una fuente.",
         "confirmDelete": "¿Estás seguro de que deseas eliminar esta fuente?",
         "btnDelete": "🗑️ Eliminar Fuente"
+        "btnClose": "Cerrar programa"
     },
     "id": {
         "appTitle": "HiChat Overlay",
@@ -310,6 +317,7 @@ const translations = {
         "errorAddSource": "Harap tambahkan setidaknya satu sumber.",
         "confirmDelete": "Apakah Anda yakin ingin menghapus sumber ini?",
         "btnDelete": "🗑️ Hapus Sumber"
+        "btnClose": "Tutup Program"
     }
 };
 

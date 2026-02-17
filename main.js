@@ -177,6 +177,10 @@ ipcMain.on('launch-overlay', (event, data) => {
     }
 });
 
+ipcMain.on('close-app', () => {
+    app.quit();
+});
+
 // App Lifecycle
 
 app.whenReady().then(() => {

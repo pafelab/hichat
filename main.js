@@ -154,7 +154,7 @@ ipcMain.on('launch-overlay', (event, data) => {
     }
 
     // Send Sources
-    if (win.isLoading()) {
+    if (win.webContents.isLoading()) {
         win.webContents.once('did-finish-load', () => {
             win.webContents.send('update-sources', data.sources);
         });

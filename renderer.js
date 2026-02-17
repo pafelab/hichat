@@ -32,6 +32,8 @@ const propInputs = {
     css: document.getElementById('prop-css')
 };
 
+const deleteSourceBtn = document.getElementById('delete-source-btn');
+
 // Global Settings Inputs
 // Global Settings Inputs
 const settingsInputs = {
@@ -161,6 +163,8 @@ function updateLanguage(lang) {
     // Launch Btn
     launchBtn.innerText = t.btnLaunch;
 
+    // Delete Btn
+    if (deleteSourceBtn) deleteSourceBtn.innerText = t.btnDelete;
     if (closeBtn && t.btnClose) {
         closeBtn.innerText = "❌ " + t.btnClose;
     }
@@ -353,6 +357,14 @@ function renderSourceList() {
 document.getElementById('add-source-btn').addEventListener('click', addSource);
 document.getElementById('move-up-btn').addEventListener('click', () => moveSource('up'));
 document.getElementById('move-down-btn').addEventListener('click', () => moveSource('down'));
+
+if (deleteSourceBtn) {
+    deleteSourceBtn.addEventListener('click', () => {
+        if (selectedSourceId) {
+            removeSource(selectedSourceId);
+        }
+    });
+}
 
 // Bind Inputs
 Object.values(propInputs).forEach(input => {

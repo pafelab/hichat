@@ -145,6 +145,16 @@ ipcMain.on('launch-overlay', (event, data) => {
                 overlayWindow.webContents.send('toggle-menu');
             }
         });
+
+        globalShortcut.register('Shift+F2', () => {
+            if (overlayWindow && !overlayWindow.isDestroyed()) {
+                if (overlayWindow.isVisible()) {
+                    overlayWindow.hide();
+                } else {
+                    overlayWindow.show();
+                }
+            }
+        });
     } catch (err) {
         console.error('Failed to register shortcut:', err);
     }

@@ -17,12 +17,6 @@ ipcRenderer.on('toggle-edit-mode', (event, active) => {
     editMode = active;
     document.body.classList.toggle('editing-mode', active);
 
-    // Apply full-screen semi-transparent black overlay via dedicated element
-    const bg = document.getElementById('edit-background');
-    if (bg) {
-        bg.style.display = active ? 'block' : 'none';
-    }
-
     renderSources(); // Re-render to show/hide handles
 });
 
@@ -501,17 +495,18 @@ function updateMenuState() {
 (function setupGlobalTab() {
     const tab = document.getElementById('app-control-tab');
     const slider = document.getElementById('global-opacity-slider');
-    const bg = document.getElementById('edit-background');
+    const canvas = document.getElementById('overlay-canvas');
     const burger = tab ? tab.querySelector('.burger-icon') : null;
 
     // Opacity Slider
-    if (slider && bg) {
+    if (slider && canvas) {
         const updateOpacity = () => {
              const val = slider.value / 100;
-             bg.style.backgroundColor = `rgba(0, 0, 0, ${val})`;
+             canvas.style.opacity = val;
         };
         slider.addEventListener('input', updateOpacity);
         // Initialize
+        slider.value = 100; // Default to full opacity
         updateOpacity();
     }
 

@@ -35,7 +35,8 @@ const translations = {
         "btnLaunching": "🚀 Launching...",
         "statusLaunched": "Overlay launched / updated!",
         "errorAddSource": "Please add at least one source.",
-        "confirmDelete": "Are you sure you want to delete this source?"
+        "confirmDelete": "Are you sure you want to delete this source?",
+        "btnDelete": "🗑️ Delete Source"
     },
     "th": {
         "appTitle": "HiChat โอเวอร์เลย์",
@@ -73,7 +74,8 @@ const translations = {
         "btnLaunching": "🚀 กำลังเริ่ม...",
         "statusLaunched": "เริ่มทำงาน / อัปเดตเรียบร้อย!",
         "errorAddSource": "กรุณาเพิ่มจออย่างน้อย 1 จอ",
-        "confirmDelete": "คุณแน่ใจหรือไม่ที่จะลบจอนี้?"
+        "confirmDelete": "คุณแน่ใจหรือไม่ที่จะลบจอนี้?",
+        "btnDelete": "🗑️ ลบจอ"
     },
     "zh": {
         "appTitle": "HiChat 覆盖层",
@@ -111,7 +113,8 @@ const translations = {
         "btnLaunching": "🚀 正在启动...",
         "statusLaunched": "覆盖层已启动/更新！",
         "errorAddSource": "请至少添加一个来源。",
-        "confirmDelete": "您确定要删除此来源吗？"
+        "confirmDelete": "您确定要删除此来源吗？",
+        "btnDelete": "🗑️ 删除来源"
     },
     "ja": {
         "appTitle": "HiChat オーバーレイ",
@@ -149,7 +152,8 @@ const translations = {
         "btnLaunching": "🚀 起動中...",
         "statusLaunched": "オーバーレイを起動/更新しました！",
         "errorAddSource": "少なくとも1つのソースを追加してください。",
-        "confirmDelete": "このソースを削除してもよろしいですか？"
+        "confirmDelete": "このソースを削除してもよろしいですか？",
+        "btnDelete": "🗑️ ソースを削除"
     },
     "de": {
         "appTitle": "HiChat Overlay",
@@ -187,7 +191,8 @@ const translations = {
         "btnLaunching": "🚀 Starten...",
         "statusLaunched": "Overlay gestartet / aktualisiert!",
         "errorAddSource": "Bitte fügen Sie mindestens eine Quelle hinzu.",
-        "confirmDelete": "Sind Sie sicher, dass Sie diese Quelle löschen möchten?"
+        "confirmDelete": "Sind Sie sicher, dass Sie diese Quelle löschen möchten?",
+        "btnDelete": "🗑️ Quelle löschen"
     },
     "it": {
         "appTitle": "HiChat Overlay",
@@ -225,7 +230,8 @@ const translations = {
         "btnLaunching": "🚀 Avvio in corso...",
         "statusLaunched": "Overlay avviato / aggiornato!",
         "errorAddSource": "Aggiungi almeno una sorgente.",
-        "confirmDelete": "Sei sicuro di voler eliminare questa sorgente?"
+        "confirmDelete": "Sei sicuro di voler eliminare questa sorgente?",
+        "btnDelete": "🗑️ Elimina Sorgente"
     },
     "es": {
         "appTitle": "HiChat Overlay",
@@ -263,7 +269,8 @@ const translations = {
         "btnLaunching": "🚀 Lanzando...",
         "statusLaunched": "¡Overlay lanzado / actualizado!",
         "errorAddSource": "Por favor, agrega al menos una fuente.",
-        "confirmDelete": "¿Estás seguro de que deseas eliminar esta fuente?"
+        "confirmDelete": "¿Estás seguro de que deseas eliminar esta fuente?",
+        "btnDelete": "🗑️ Eliminar Fuente"
     },
     "id": {
         "appTitle": "HiChat Overlay",
@@ -301,7 +308,8 @@ const translations = {
         "btnLaunching": "🚀 Meluncurkan...",
         "statusLaunched": "Overlay diluncurkan / diperbarui!",
         "errorAddSource": "Harap tambahkan setidaknya satu sumber.",
-        "confirmDelete": "Apakah Anda yakin ingin menghapus sumber ini?"
+        "confirmDelete": "Apakah Anda yakin ingin menghapus sumber ini?",
+        "btnDelete": "🗑️ Hapus Sumber"
     }
 };
 

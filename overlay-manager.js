@@ -72,29 +72,93 @@ function renderSources() {
             // Append
             wrapper.appendChild(webview);
 
-            // Drag Handle (Burger Menu - Top Left)
-            const dragHandle = document.createElement('div');
-            dragHandle.className = 'drag-handle-icon';
-            dragHandle.innerHTML = '☰'; // Burger icon
-            // Inline styles for the handle (can be moved to CSS)
-            Object.assign(dragHandle.style, {
+            // Source Header (Drag Handle + Name + Opacity Control)
+            const header = document.createElement('div');
+            header.className = 'source-header';
+
+            // Inline styles for header (can be moved to CSS for better management, but keeping inline for simplicity here)
+            Object.assign(header.style, {
                 position: 'absolute',
-                top: '-24px', // Above the source content
+                top: '-28px',
                 left: '0',
-                width: '24px',
-                height: '24px',
-                background: '#333',
-                color: 'white',
+                minWidth: '120px',
+                height: '28px',
+                background: '#202225', // Discord-like dark
+                color: '#dcddde',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'move',
-                zIndex: '100', // Ensure it's clickable
+                padding: '0 8px',
+                cursor: 'move', // Entire header is drag handle
+                zIndex: '100',
                 borderRadius: '4px 4px 0 0',
-                fontSize: '16px',
-                userSelect: 'none'
+                fontSize: '12px',
+                userSelect: 'none',
+                gap: '8px',
+                boxShadow: '0 -2px 5px rgba(0,0,0,0.2)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderBottom: 'none'
             });
-            wrapper.appendChild(dragHandle);
+
+            // Burger Icon
+            const burger = document.createElement('span');
+            burger.innerHTML = '☰';
+            burger.style.fontSize = '14px';
+            burger.style.opacity = '0.7';
+            header.appendChild(burger);
+
+            // Title
+            const title = document.createElement('span');
+            title.className = 'source-title';
+            title.innerText = source.name || 'Source';
+            title.style.fontWeight = '600';
+            title.style.whiteSpace = 'nowrap';
+            title.style.overflow = 'hidden';
+            title.style.textOverflow = 'ellipsis';
+            title.style.maxWidth = '150px';
+            header.appendChild(title);
+
+            // Opacity Slider (Mini)
+            const opacityContainer = document.createElement('div');
+            opacityContainer.style.display = 'flex';
+            opacityContainer.style.alignItems = 'center';
+            opacityContainer.style.marginLeft = 'auto'; // Push to right
+            opacityContainer.title = 'Opacity';
+
+            const opacityIcon = document.createElement('span');
+            opacityIcon.innerText = '👁️';
+            opacityIcon.style.fontSize = '10px';
+            opacityIcon.style.marginRight = '4px';
+            opacityContainer.appendChild(opacityIcon);
+
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.min = '0';
+            slider.max = '100';
+            slider.value = (source.opacity !== undefined ? source.opacity * 100 : 100);
+            slider.style.width = '60px';
+            slider.style.height = '4px';
+
+            slider.addEventListener('mousedown', (e) => e.stopPropagation()); // Prevent drag
+            slider.addEventListener('input', (e) => {
+                const opacity = parseInt(e.target.value) / 100;
+                // Apply opacity to webview/wrapper immediately
+                wrapper.style.opacity = opacity;
+
+                // Debounce update to main
+                if (source._opacityTimeout) clearTimeout(source._opacityTimeout);
+                source._opacityTimeout = setTimeout(() => {
+                    const s = sources.find(src => src.id === source.id);
+                    if (s) {
+                        s.opacity = opacity;
+                        notifyUpdate();
+                    }
+                }, 200);
+            });
+
+            opacityContainer.appendChild(slider);
+            header.appendChild(opacityContainer);
+
+            wrapper.appendChild(header);
 
             // Handles
             ['nw', 'ne', 'sw', 'se'].forEach(pos => {
@@ -126,6 +190,9 @@ function renderSources() {
         wrapper.style.width = `${source.width}px`;
         wrapper.style.height = `${source.height}px`;
         wrapper.style.zIndex = source.zIndex;
+        if (source.opacity !== undefined) {
+             wrapper.style.opacity = source.opacity;
+        }
         wrapper.dataset.name = source.name || 'Source';
 
         // Interactive Mode

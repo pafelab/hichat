@@ -4,42 +4,12 @@
   "description": "YouTube/Twitch Chat Overlay",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "dist": "electron-builder"
+    "start": "electron ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^34.5.8",
-    "electron-builder": "^26.7.0"
-  },
-  "build": {
-    "appId": "com.pafelab.hichat",
-    "productName": "HiChat Overlay",
-    "files": [
-      "**/*",
-      "!dist/*",
-      "!**/node_modules/*",
-      "!benchmark_*.js",
-      "!.git/*",
-      "!.gitignore",
-      "!README.md",
-      "!package-lock.json"
-    ],
-    "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "category": "Utility"
-    },
-    "win": {
-      "target": [
-        "portable"
-      ]
-    },
-    "directories": {
-      "output": "dist"
-    }
+    "electron": "^34.5.8"
   }
 }

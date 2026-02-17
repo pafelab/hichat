@@ -3,6 +3,7 @@ let sources = [];
 let selectedSourceId = null;
 let globalSettings = {
     menuShortcut: 'Shift+F1',
+    toggleShortcut: 'Shift+F2',
     hideFromObs: false
 };
 
@@ -31,6 +32,7 @@ const propInputs = {
 // Global Settings Inputs
 const settingsInputs = {
     menuShortcut: document.getElementById('menu-shortcut'),
+    toggleShortcut: document.getElementById('toggle-shortcut'),
     hideFromObs: document.getElementById('hide-from-obs')
 };
 
@@ -217,6 +219,11 @@ if (settingsInputs.menuShortcut) {
         globalSettings.menuShortcut = e.target.value;
     });
 }
+if (settingsInputs.toggleShortcut) {
+    settingsInputs.toggleShortcut.addEventListener('input', (e) => {
+        globalSettings.toggleShortcut = e.target.value;
+    });
+}
 if (settingsInputs.hideFromObs) {
     settingsInputs.hideFromObs.addEventListener('change', (e) => {
         globalSettings.hideFromObs = e.target.checked;
@@ -316,6 +323,7 @@ if (window.api) {
         if (data.settings) {
             globalSettings = data.settings;
             if (settingsInputs.menuShortcut) settingsInputs.menuShortcut.value = globalSettings.menuShortcut || 'Shift+F1';
+            if (settingsInputs.toggleShortcut) settingsInputs.toggleShortcut.value = globalSettings.toggleShortcut || 'Shift+F2';
             if (settingsInputs.hideFromObs) settingsInputs.hideFromObs.checked = globalSettings.hideFromObs || false;
         }
 

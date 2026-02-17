@@ -10,20 +10,14 @@ const canvas = document.getElementById('overlay-canvas');
 
 ipcRenderer.on('update-sources', (event, newSources) => {
     sources = newSources;
-    renderSources(true);
+    renderSources();
 });
 
 ipcRenderer.on('toggle-edit-mode', (event, active) => {
     editMode = active;
     document.body.classList.toggle('editing-mode', active);
 
-    // Apply full-screen semi-transparent black overlay via dedicated element
-    const bg = document.getElementById('edit-background');
-    if (bg) {
-        bg.style.display = active ? 'block' : 'none';
-    }
-
-    renderSources(false); // Re-render to show/hide handles, preserve content
+    renderSources(); // Re-render to show/hide handles
 });
 
 ipcRenderer.on('toggle-menu', () => {
@@ -32,7 +26,7 @@ ipcRenderer.on('toggle-menu', () => {
 
 // --- Rendering ---
 
-function renderSources(updateContent = true) {
+function renderSources() {
     // Naive re-render: clear and rebuild.
     // Optimization: Diffing by ID would be better, but MVP first.
 
@@ -186,7 +180,7 @@ function renderSources(updateContent = true) {
         } else {
             webview = wrapper.querySelector('webview');
             // Update URL if changed? (Avoid reload if same)
-            if (updateContent && webview.src !== source.url && source.url) {
+            if (webview.src !== source.url && source.url) {
                 webview.src = source.url;
             }
         }
@@ -227,12 +221,6 @@ function renderSources(updateContent = true) {
             wrapper.classList.add('editing');
         } else {
             wrapper.classList.remove('editing');
-        }
-
-        // Update Header Visibility
-        const header = wrapper.querySelector('.source-header');
-        if (header) {
-            header.style.display = editMode ? 'flex' : 'none';
         }
     });
 }
@@ -456,7 +444,7 @@ function toggleMenu(show) {
                     icon: '📐',
                     action: () => {
                         editMode = !editMode;
-                        renderSources(false);
+                        renderSources();
                         updateMenuState();
                     },
                     active: () => editMode

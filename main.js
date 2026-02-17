@@ -85,7 +85,7 @@ function createOverlayWindow(settings) {
     });
 
     overlayWindow.setAlwaysOnTop(true, 'screen-saver');
-    
+
     // Default: Click-through enabled (ignore mouse)
     // overlay-manager will request interaction when needed (Edit Mode, Menu, or specific interactive source)
     overlayWindow.setIgnoreMouseEvents(true, { forward: true });
@@ -137,6 +137,7 @@ ipcMain.on('launch-overlay', (event, data) => {
     // Register Shortcut
     globalShortcut.unregisterAll();
     const shortcut = (data.settings && data.settings.menuShortcut) || 'Shift+F1';
+    const toggleShortcut = (data.settings && data.settings.toggleShortcut) || 'Shift+F2';
 
     try {
         globalShortcut.register(shortcut, () => {
@@ -146,13 +147,12 @@ ipcMain.on('launch-overlay', (event, data) => {
             }
         });
 
-        globalShortcut.register('Shift+F2', () => {
+        globalShortcut.register(toggleShortcut, () => {
             if (overlayWindow && !overlayWindow.isDestroyed()) {
-                if (overlayWindow.isVisible()) {
-                    overlayWindow.hide();
-                } else {
-                    overlayWindow.show();
-                }
+                // Determine if we should toggle window or just sources?
+                // User asked for "hide toggle browser source all".
+                // We will send IPC to renderer to handle source toggling.
+                overlayWindow.webContents.send('toggle-sources-visibility');
             }
         });
     } catch (err) {

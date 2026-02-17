@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="styles.css">
     <!-- Icon Font (optional, using emojis for now or unicode) -->
 </head>
+
 <body>
     <h1>🎨 HiChat Overlay</h1>
 
@@ -132,6 +134,12 @@
             </div>
 
             <div class="form-group">
+                <label for="toggle-shortcut">Toggle Sources Shortcut</label>
+                <input type="text" id="toggle-shortcut" value="Shift+F2" placeholder="Shift+F2">
+                <small>Key combination to toggle visibility of all sources.</small>
+            </div>
+
+            <div class="form-group">
                 <label class="toggle-wrapper">
                     <input type="checkbox" id="hide-from-obs">
                     <div class="toggle-switch"></div>
@@ -140,10 +148,52 @@
                 <small>Prevents the window from being captured by streaming software.</small>
             </div>
 
-             <div class="tips-box">
+            <div class="form-group">
+                <label for="language-select">Language</label>
+                <div class="custom-select-wrapper">
+                    <div class="custom-select" id="language-custom-select">
+                        <div class="custom-select__trigger">
+                            <span class="trigger-content">
+                                <img src="https://flagcdn.com/w40/gb.png" class="flag-icon" id="current-flag">
+                                <span id="current-lang-text">English</span>
+                            </span>
+                            <div class="arrow"></div>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-option" data-value="en" data-flag="https://flagcdn.com/w40/gb.png">
+                                <img src="https://flagcdn.com/w40/gb.png" class="flag-icon"> English
+                            </div>
+                            <div class="custom-option" data-value="th" data-flag="https://flagcdn.com/w40/th.png">
+                                <img src="https://flagcdn.com/w40/th.png" class="flag-icon"> ไทย (Thai)
+                            </div>
+                            <div class="custom-option" data-value="zh" data-flag="https://flagcdn.com/w40/cn.png">
+                                <img src="https://flagcdn.com/w40/cn.png" class="flag-icon"> 中文 (Chinese)
+                            </div>
+                            <div class="custom-option" data-value="ja" data-flag="https://flagcdn.com/w40/jp.png">
+                                <img src="https://flagcdn.com/w40/jp.png" class="flag-icon"> 日本語 (Japanese)
+                            </div>
+                            <div class="custom-option" data-value="de" data-flag="https://flagcdn.com/w40/de.png">
+                                <img src="https://flagcdn.com/w40/de.png" class="flag-icon"> Deutsch (German)
+                            </div>
+                            <div class="custom-option" data-value="it" data-flag="https://flagcdn.com/w40/it.png">
+                                <img src="https://flagcdn.com/w40/it.png" class="flag-icon"> Italiano (Italian)
+                            </div>
+                            <div class="custom-option" data-value="es" data-flag="https://flagcdn.com/w40/es.png">
+                                <img src="https://flagcdn.com/w40/es.png" class="flag-icon"> Español (Spanish)
+                            </div>
+                            <div class="custom-option" data-value="id" data-flag="https://flagcdn.com/w40/id.png">
+                                <img src="https://flagcdn.com/w40/id.png" class="flag-icon"> Bahasa Indonesia
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tips-box">
                 <h3>💡 Tips</h3>
                 <ul>
-                    <li>Use <strong>Shift+F1</strong> (or your shortcut) to toggle <strong>Edit Mode</strong> on the overlay.</li>
+                    <li>Use <strong>Shift+F1</strong> (or your shortcut) to toggle <strong>Edit Mode</strong> on the
+                        overlay.</li>
                     <li>In Edit Mode, you can drag and resize sources directly.</li>
                     <li>Sources at the bottom of the list are rendered on top (Z-Index).</li>
                 </ul>
@@ -158,6 +208,8 @@
         <div id="status" aria-live="polite"></div>
     </footer>
 
+    <script src="translations.js"></script>
     <script src="renderer.js"></script>
 </body>
+
 </html>

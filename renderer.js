@@ -1,9 +1,12 @@
 // --- State ---
+
 let sources = [];
 let selectedSourceId = null;
 let globalSettings = {
     menuShortcut: 'Shift+F1',
-    hideFromObs: false
+    toggleShortcut: 'Shift+F2',
+    hideFromObs: false,
+    language: 'en'
 };
 
 // --- DOM Elements ---
@@ -29,10 +32,158 @@ const propInputs = {
 };
 
 // Global Settings Inputs
+// Global Settings Inputs
 const settingsInputs = {
     menuShortcut: document.getElementById('menu-shortcut'),
-    hideFromObs: document.getElementById('hide-from-obs')
+    toggleShortcut: document.getElementById('toggle-shortcut'),
+    hideFromObs: document.getElementById('hide-from-obs'),
+    // language: document.getElementById('language-select') // Removed standard select
 };
+
+const customSelect = document.querySelector('.custom-select');
+const customOptions = document.querySelectorAll('.custom-option');
+const currentLangText = document.getElementById('current-lang-text');
+const currentFlag = document.getElementById('current-flag');
+
+// --- Localization ---
+function updateLanguage(lang) {
+    if (!translations[lang]) lang = 'en';
+    const t = translations[lang];
+
+    document.title = t.appTitle;
+    document.querySelector('h1').innerText = "art " + t.appTitle; // Keeping the "art" prefix if intended? Or maybe emoji. Original was "🎨 HiChat Overlay".
+    document.querySelector('h1').innerHTML = "🎨 " + t.appTitle;
+
+    document.querySelector('[data-tab="sources"]').innerText = t.tabSources;
+    document.querySelector('[data-tab="settings"]').innerText = t.tabSettings;
+
+    document.querySelector('.source-list-panel .panel-header h2').innerText = t.panelSources;
+    document.getElementById('add-source-btn').innerText = t.btnAdd;
+    document.getElementById('add-source-btn').title = t.btnAdd; // Tooltip
+    // Move buttons are icons, maybe title?
+
+    document.querySelector('.properties-panel .panel-header h2').innerText = t.panelProperties;
+    document.getElementById('no-selection-msg').innerText = t.msgNoSelection;
+
+    // Labels
+    const labels = document.querySelectorAll('label');
+    labels.forEach(l => {
+        // This is tricky without IDs on labels. 
+        // Best effort: match by structure or add IDs to HTML.
+        // Let's rely on specific updates or better, structure map.
+        // Actually, let's update specific elements by querySelector.
+    });
+
+    // Explicit updates
+    setLabelText('prop-name', t.labelName);
+    setLabelText('prop-url', t.labelUrl);
+    setLabelText('prop-width', t.labelWidth);
+    setLabelText('prop-height', t.labelHeight);
+    setLabelText('prop-x', t.labelX);
+    setLabelText('prop-y', t.labelY);
+    // Audio group is complex.
+    // Mute/Interact toggle text is next to checkbox.
+
+    // Mute
+    const muteLabel = document.querySelector('#prop-muted').parentNode;
+    if (muteLabel) muteLabel.lastChild.textContent = " " + t.labelMute;
+
+    // Interact
+    const interactLabel = document.querySelector('#prop-interact').parentNode.nextElementSibling;
+    if (interactLabel && interactLabel.tagName === 'SPAN') interactLabel.innerText = t.labelInteractive; // Structure check: label -> input, div, span.
+    // Wait, HTML structure: <label class="toggle-wrapper"> <input> <div> <span>Text</span> </label>
+    const interactSpan = document.querySelector('#prop-interact ~ span');
+    if (interactSpan) interactSpan.innerText = t.labelInteractive;
+
+    // CSS
+    const cssLabel = document.querySelector('#prop-css').previousElementSibling.previousElementSibling; // Button group is in between
+    // Actually label is 'Custom CSS'.
+    // Let's create a helper to find label by 'for' attribute if possible, but inputs have IDs.
+    // HTML: <label>Name</label><input id="prop-name">
+    // So label is previousElementSibling of input? No, they are in .form-group together.
+
+    updateLabelFor('prop-name', t.labelName);
+    updateLabelFor('prop-url', t.labelUrl);
+    updateLabelFor('prop-width', t.labelWidth);
+    updateLabelFor('prop-height', t.labelHeight);
+    updateLabelFor('prop-x', t.labelX);
+    updateLabelFor('prop-y', t.labelY);
+
+    // Audio label is first child of form-group
+    const audioGroup = document.querySelector('#prop-volume').closest('.form-group');
+    if (audioGroup) audioGroup.querySelector('label').innerText = t.labelAudio;
+
+    // Opacity
+    // <label>Opacity: <span...
+    const opacityLabel = document.querySelector('#prop-opacity').previousElementSibling; // label
+    if (opacityLabel) {
+        const span = opacityLabel.querySelector('span'); // Save current value
+        opacityLabel.firstChild.textContent = t.labelOpacity + ": ";
+    }
+
+    // Custom CSS
+    const cssGroup = document.querySelector('#prop-css').closest('.form-group');
+    if (cssGroup) cssGroup.querySelector('label').innerText = t.labelCustomCss;
+
+    // Settings Tab
+    updateLabelFor('menu-shortcut', t.labelMenuShortcut);
+    document.querySelector('#menu-shortcut ~ small').innerText = t.descMenuShortcut;
+
+    updateLabelFor('toggle-shortcut', t.labelToggleShortcut);
+    document.querySelector('#toggle-shortcut ~ small').innerText = t.descToggleShortcut;
+
+    // Hide OBS
+    const hideObsSpan = document.querySelector('#hide-from-obs ~ span');
+    if (hideObsSpan) hideObsSpan.innerText = t.labelHideObs;
+    document.querySelector('#hide-from-obs').closest('.form-group').querySelector('small').innerText = t.descHideObs;
+
+    updateLabelFor('language-select', t.labelLanguage);
+
+    // Update Custom Select Option Labels (Flags are static)
+    // We need to map values because DOM doesn't have IDs for options easily.
+    // Or just leave them alone? Languages names are usually static in their own language?
+    // "English" is English. "ไทย" is Thai. 
+    // Usually language selector names should NOT change with locale.
+    // "English" should always be "English", not "Aannggkrit".
+    // So we DON'T translate the option texts.
+    // But we might need to translate the label "Language".
+
+    // Tips
+    document.querySelector('.tips-box h3').innerText = t.tipsTitle;
+    const items = document.querySelectorAll('.tips-box ul li');
+    if (items.length >= 3) {
+        items[0].innerHTML = t.tip1;
+        items[1].innerHTML = t.tip2;
+        items[2].innerHTML = t.tip3;
+    }
+
+    // Launch Btn
+    launchBtn.innerText = t.btnLaunch;
+
+    // Re-render source list (for delete button title if needed, but it's icon)
+    // No text in list items besides name.
+}
+
+function updateLabelFor(inputId, text) {
+    // Assumes <div class="form-group"><label>Text</label><input id="inputId"></div>
+    // OR <label for="inputId">
+    let label = document.querySelector(`label[for="${inputId}"]`);
+    if (!label) {
+        // Fallback: previous sibling of input, or first child of parent
+        const input = document.getElementById(inputId);
+        if (input) {
+            const parent = input.closest('.form-group');
+            if (parent) {
+                label = parent.querySelector('label');
+            }
+        }
+    }
+    if (label) label.innerText = text;
+}
+
+function setLabelText(inputId, text) {
+    updateLabelFor(inputId, text);
+}
 
 // --- Helper Functions ---
 function generateId() {
@@ -222,6 +373,51 @@ if (settingsInputs.hideFromObs) {
         globalSettings.hideFromObs = e.target.checked;
     });
 }
+if (settingsInputs.toggleShortcut) {
+    settingsInputs.toggleShortcut.addEventListener('input', (e) => {
+        globalSettings.toggleShortcut = e.target.value;
+    });
+}
+// Language Custom Select Logic
+if (customSelect) {
+    const trigger = customSelect.querySelector('.custom-select__trigger');
+
+    // Toggle
+    trigger.addEventListener('click', () => {
+        customSelect.classList.toggle('open');
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!customSelect.contains(e.target)) {
+            customSelect.classList.remove('open');
+        }
+    });
+
+    // Options Click
+    customOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            const value = option.getAttribute('data-value');
+            const flag = option.getAttribute('data-flag');
+            const text = option.innerText.trim(); // or content excluding img
+
+            // Update Global Settings
+            globalSettings.language = value;
+            updateLanguage(value);
+
+            // Update UI
+            currentLangText.innerText = text;
+            currentFlag.src = flag;
+
+            // Highlight selected
+            customOptions.forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+
+            // Close
+            customSelect.classList.remove('open');
+        });
+    });
+}
 
 // CSS Presets
 const PRESETS = {
@@ -316,7 +512,22 @@ if (window.api) {
         if (data.settings) {
             globalSettings = data.settings;
             if (settingsInputs.menuShortcut) settingsInputs.menuShortcut.value = globalSettings.menuShortcut || 'Shift+F1';
+            if (settingsInputs.toggleShortcut) settingsInputs.toggleShortcut.value = globalSettings.toggleShortcut || 'Shift+F2';
             if (settingsInputs.hideFromObs) settingsInputs.hideFromObs.checked = globalSettings.hideFromObs || false;
+
+            if (globalSettings.language) {
+                // init custom select
+                const lang = globalSettings.language;
+                const option = document.querySelector(`.custom-option[data-value="${lang}"]`);
+                if (option) {
+                    currentLangText.innerText = option.innerText.trim();
+                    currentFlag.src = option.getAttribute('data-flag');
+                    customOptions.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                }
+            }
+            // Apply Language
+            updateLanguage(globalSettings.language || 'en');
         }
 
         // Legacy Config Migration (if needed)

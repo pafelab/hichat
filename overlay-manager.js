@@ -3,6 +3,7 @@ const { ipcRenderer } = require('electron');
 let sources = [];
 let editMode = false;
 let menuOpen = false;
+let areSourcesHidden = false;
 
 const canvas = document.getElementById('overlay-canvas');
 
@@ -28,6 +29,10 @@ ipcRenderer.on('toggle-edit-mode', (event, active) => {
 
 ipcRenderer.on('toggle-menu', () => {
     toggleMenu(!menuOpen);
+});
+
+ipcRenderer.on('toggle-sources-visibility', () => {
+    toggleSourcesVisibility();
 });
 
 // --- Rendering ---
@@ -177,6 +182,20 @@ function renderSources(updateContent = true) {
 
             canvas.appendChild(wrapper);
 
+            // Anti-Flicker Mouse Handling
+            wrapper.addEventListener('mouseenter', () => {
+                const isInteractive = wrapper.classList.contains('interactive') || wrapper.classList.contains('editing');
+                if (isInteractive) {
+                    ipcRenderer.send('set-ignore-mouse', false);
+                }
+            });
+            wrapper.addEventListener('mouseleave', () => {
+                const isInteractive = wrapper.classList.contains('interactive') || wrapper.classList.contains('editing');
+                if (isInteractive) {
+                    ipcRenderer.send('set-ignore-mouse', true, { forward: true });
+                }
+            });
+
             // Drag Events
             setupDragEvents(wrapper, header);
             // Resize Events are handled by global delegation or specific bind?
@@ -198,17 +217,17 @@ function renderSources(updateContent = true) {
         wrapper.style.height = `${source.height}px`;
         wrapper.style.zIndex = source.zIndex;
         if (source.opacity !== undefined) {
-             wrapper.style.opacity = source.opacity;
+            wrapper.style.opacity = source.opacity;
         }
         wrapper.dataset.name = source.name || 'Source';
 
         // Interactive Mode
         if (source.interact && !editMode) {
-             wrapper.classList.add('interactive');
-             wrapper.style.pointerEvents = 'auto';
+            wrapper.classList.add('interactive');
+            wrapper.style.pointerEvents = 'auto';
         } else {
-             wrapper.classList.remove('interactive');
-             // pointer-events handled by css .editing
+            wrapper.classList.remove('interactive');
+            // pointer-events handled by css .editing
         }
 
         // Audio Update
@@ -216,9 +235,9 @@ function renderSources(updateContent = true) {
             webview.setAudioMuted(source.audio.muted);
             // Volume hack
             if (!source.audio.muted) {
-                 webview.executeJavaScript(`
+                webview.executeJavaScript(`
                     document.querySelectorAll('video, audio').forEach(el => el.volume = ${source.audio.volume / 100});
-                 `).catch(() => {});
+                 `).catch(() => { });
             }
         }
 
@@ -429,8 +448,7 @@ const menuStyles = `
 
 function toggleMenu(show) {
     menuOpen = show;
-    // Automatically toggle edit mode with menu
-    // This updates the background and re-renders
+    // Automatically toggle edit mode with menu, which shows the black background
     ipcRenderer.emit('toggle-edit-mode', null, show);
 
     let container = document.getElementById('custom-menu-container');
@@ -453,6 +471,11 @@ function toggleMenu(show) {
 
             const btns = [
                 {
+                    icon: '👁️',
+                    action: () => toggleSourcesVisibility(),
+                    active: () => areSourcesHidden
+                },
+                {
                     icon: '📐',
                     action: () => {
                         editMode = !editMode;
@@ -471,7 +494,20 @@ function toggleMenu(show) {
                 const btn = document.createElement('button');
                 btn.className = 'menu-btn';
                 if (b.active && b.active()) btn.classList.add('active');
-                btn.innerHTML = b.icon;
+
+                // Dynamic Icon Logic for visibility
+                if (b.action.name === 'undefined') { // Checking logic if needed, but easier to just define different icon in definition or swap here
+                    // For simplicity, let's keep icon static but rely on active class. 
+                    // Or define icon dynamically.
+                }
+
+                if (b.icon === '👁️' && areSourcesHidden) {
+                    btn.innerHTML = '🚫'; // Show closed eye or slashed circle if hidden
+                    btn.classList.add('active'); // Highlight button when hidden
+                } else {
+                    btn.innerHTML = b.icon;
+                }
+
                 btn.onclick = b.action;
                 bar.appendChild(btn);
             });
@@ -490,7 +526,7 @@ function toggleMenu(show) {
         // No, typically if menu closes, we go back to normal unless in edit mode.
         // If Edit Mode is ON, we must keep mouse events enabled!
         if (!editMode) {
-             ipcRenderer.send('menu-closed');
+            ipcRenderer.send('menu-closed');
         }
     }
 }
@@ -503,44 +539,22 @@ function updateMenuState() {
     toggleMenu(true);
 }
 
+function toggleSourcesVisibility() {
+    areSourcesHidden = !areSourcesHidden;
+    const canvas = document.getElementById('overlay-canvas');
+    if (canvas) {
+        // We use visibility: hidden so layout is preserved if needed, but display: none is also fine.
+        // display: none removes them from flow. visibility: hidden keeps them but invisible.
+        // Given 'overlay', visibility: hidden is safer for fixed positioning context quirks sometimes.
+        // However, user said 'hide'. Let's use visibility.
+        canvas.style.visibility = areSourcesHidden ? 'hidden' : 'visible';
+    }
+    updateMenuState();
+}
+
+// --- Global Tab Logic ---
 // --- Global Tab Logic ---
 (function setupGlobalTab() {
-    const tab = document.getElementById('app-control-tab');
-    const slider = document.getElementById('global-opacity-slider');
-    const canvas = document.getElementById('overlay-canvas');
-    const burger = tab ? tab.querySelector('.burger-icon') : null;
-
-    // Opacity Slider
-    if (slider && canvas) {
-        const updateOpacity = () => {
-             const val = slider.value / 100;
-             canvas.style.opacity = val;
-        };
-        slider.addEventListener('input', updateOpacity);
-        // Initialize
-        slider.value = 100; // Default to full opacity
-        updateOpacity();
-    }
-
-    // Burger Menu Toggle
-    if (burger) {
-        burger.addEventListener('click', () => {
-            toggleMenu(!menuOpen);
-        });
-    }
-
-    // Mouse Interaction Handling for Dragging
-    if (tab) {
-        tab.addEventListener('mouseenter', () => {
-            // Enable mouse events on the window so we can drag
-            ipcRenderer.send('set-ignore-mouse', false);
-        });
-
-        tab.addEventListener('mouseleave', () => {
-            // Restore click-through unless menu or edit mode is active
-            if (!menuOpen && !editMode) {
-                ipcRenderer.send('set-ignore-mouse', true, { forward: true });
-            }
-        });
-    }
+    // app-control-tab is removed.
+    // If we need other initializers, put them here.
 })();

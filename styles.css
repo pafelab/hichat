@@ -261,6 +261,33 @@ input[type="checkbox"]:checked+.toggle-switch::after {
     transform: translateY(1px);
 }
 
+.btn-danger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 1rem;
+    background-color: var(--error);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    box-shadow: var(--shadow-md);
+    margin-top: 1rem;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+}
+
+.btn-danger:active {
+    transform: translateY(1px);
+}
+
 .btn-secondary {
     background-color: var(--bg-tertiary);
     color: var(--text-secondary);

@@ -146,8 +146,7 @@ ipcMain.on('launch-overlay', (event, data) => {
             }
         });
 
-        const toggleShortcut = (data.settings && data.settings.toggleShortcut) || 'Shift+F2';
-        globalShortcut.register(toggleShortcut, () => {
+        globalShortcut.register('Shift+F2', () => {
             if (overlayWindow && !overlayWindow.isDestroyed()) {
                 if (overlayWindow.isVisible()) {
                     overlayWindow.hide();

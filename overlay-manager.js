@@ -16,6 +16,14 @@ ipcRenderer.on('update-sources', (event, newSources) => {
 ipcRenderer.on('toggle-edit-mode', (event, active) => {
     editMode = active;
     document.body.classList.toggle('editing-mode', active);
+
+    // Apply full-screen semi-transparent black overlay
+    if (active) {
+        document.body.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+    } else {
+        document.body.style.backgroundColor = 'transparent';
+    }
+
     renderSources(); // Re-render to show/hide handles
 });
 
@@ -416,8 +424,9 @@ const menuStyles = `
 
 function toggleMenu(show) {
     menuOpen = show;
-    editMode = show; // Automatically toggle edit mode with menu
-    renderSources(); // Apply visual changes
+    // Automatically toggle edit mode with menu
+    // This updates the background and re-renders
+    ipcRenderer.emit('toggle-edit-mode', null, show);
 
     let container = document.getElementById('custom-menu-container');
 

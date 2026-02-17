@@ -14,12 +14,25 @@
             background: transparent;
         }
 
+        #edit-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 0;
+            display: none;
+            pointer-events: none;
+        }
+
         #overlay-canvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            z-index: 1; /* Ensure sources are above the background */
             pointer-events: none; /* Let clicks pass through by default */
         }
 
@@ -87,6 +100,7 @@
     </style>
 </head>
 <body>
+    <div id="edit-background"></div>
     <div id="overlay-canvas"></div>
     <script src="overlay-manager.js"></script>
 </body>

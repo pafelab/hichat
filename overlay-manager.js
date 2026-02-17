@@ -17,11 +17,10 @@ ipcRenderer.on('toggle-edit-mode', (event, active) => {
     editMode = active;
     document.body.classList.toggle('editing-mode', active);
 
-    // Apply full-screen semi-transparent black overlay
-    if (active) {
-        document.body.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-    } else {
-        document.body.style.backgroundColor = 'transparent';
+    // Apply full-screen semi-transparent black overlay via dedicated element
+    const bg = document.getElementById('edit-background');
+    if (bg) {
+        bg.style.display = active ? 'block' : 'none';
     }
 
     renderSources(); // Re-render to show/hide handles

@@ -72,6 +72,30 @@ function renderSources() {
             // Append
             wrapper.appendChild(webview);
 
+            // Drag Handle (Burger Menu - Top Left)
+            const dragHandle = document.createElement('div');
+            dragHandle.className = 'drag-handle-icon';
+            dragHandle.innerHTML = '☰'; // Burger icon
+            // Inline styles for the handle (can be moved to CSS)
+            Object.assign(dragHandle.style, {
+                position: 'absolute',
+                top: '-24px', // Above the source content
+                left: '0',
+                width: '24px',
+                height: '24px',
+                background: '#333',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'move',
+                zIndex: '100', // Ensure it's clickable
+                borderRadius: '4px 4px 0 0',
+                fontSize: '16px',
+                userSelect: 'none'
+            });
+            wrapper.appendChild(dragHandle);
+
             // Handles
             ['nw', 'ne', 'sw', 'se'].forEach(pos => {
                 const handle = document.createElement('div');
@@ -83,7 +107,7 @@ function renderSources() {
             canvas.appendChild(wrapper);
 
             // Drag Events
-            setupDragEvents(wrapper);
+            setupDragEvents(wrapper, dragHandle);
             // Resize Events are handled by global delegation or specific bind?
             // Since we rebuild, let's bind to handles inside wrapper
             const handles = wrapper.querySelectorAll('.resize-handle');
@@ -135,20 +159,27 @@ function renderSources() {
 
 // --- Interaction Logic ---
 
-function setupDragEvents(element) {
+function setupDragEvents(wrapper, handle) {
     let startX, startY, startLeft, startTop;
 
-    element.addEventListener('mousedown', (e) => {
-        if (!editMode) return;
-        if (e.target.classList.contains('resize-handle')) return; // Ignore resize handles
+    // Attach to handle specifically, or entire wrapper in edit mode?
+    // Let's attach to handle ALWAYS (even outside edit mode if desired, but user said "when edit mode" in general, but the handle implies persistent).
+    // Let's make the handle ALWAYS drag the window if it's visible.
+    // If handle is only visible in edit mode (due to css), then it works.
+    // But currently handle is always appended. Let's make it respect edit mode or allow drag.
+    // User requested "add burger... drag position".
 
-        e.preventDefault(); // Prevent text selection
+    const onMouseDown = (e) => {
+        if (!editMode) return; // Only allow drag in edit mode? Or always via handle?
+        // Typically handles are for edit mode. Let's stick to edit mode for safety unless requested otherwise.
+
+        e.preventDefault();
         e.stopPropagation();
 
         startX = e.clientX;
         startY = e.clientY;
-        startLeft = parseInt(element.style.left || 0);
-        startTop = parseInt(element.style.top || 0);
+        startLeft = parseInt(wrapper.style.left || 0);
+        startTop = parseInt(wrapper.style.top || 0);
 
         const onMouseMove = (ev) => {
             const dx = ev.clientX - startX;
@@ -157,11 +188,11 @@ function setupDragEvents(element) {
             const newX = startLeft + dx;
             const newY = startTop + dy;
 
-            element.style.left = `${newX}px`;
-            element.style.top = `${newY}px`;
+            wrapper.style.left = `${newX}px`;
+            wrapper.style.top = `${newY}px`;
 
             // Update local model
-            const id = element.dataset.id;
+            const id = wrapper.dataset.id;
             const source = sources.find(s => s.id === id);
             if (source) {
                 source.x = newX;
@@ -178,6 +209,20 @@ function setupDragEvents(element) {
 
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
+    };
+
+    // Attach to handle for dragging
+    if (handle) {
+        handle.addEventListener('mousedown', onMouseDown);
+    }
+
+    // Also attach to wrapper body if in edit mode (legacy behavior)
+    wrapper.addEventListener('mousedown', (e) => {
+        // If clicking on resize handle or burger handle, ignore here (handled there)
+        if (e.target.classList.contains('resize-handle') || e.target.closest('.drag-handle-icon')) return;
+
+        // If strict mode, maybe only handle? But for usability, body drag in edit mode is good.
+        onMouseDown(e);
     });
 }
 

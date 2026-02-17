@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
     send: (channel, data) => {
-        let validChannels = ['launch-overlay'];
+        let validChannels = ['launch-overlay', 'close-app'];
         if (validChannels.includes(channel)) {
             ipcRenderer.send(channel, data);
         }

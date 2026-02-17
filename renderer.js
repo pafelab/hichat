@@ -23,6 +23,7 @@ const propInputs = {
     y: document.getElementById('prop-y'),
     muted: document.getElementById('prop-muted'),
     volume: document.getElementById('prop-volume'),
+    opacity: document.getElementById('prop-opacity'),
     interact: document.getElementById('prop-interact'),
     css: document.getElementById('prop-css')
 };
@@ -60,6 +61,7 @@ function addSource() {
         y: 50,
         zIndex: sources.length + 1,
         audio: { muted: false, volume: 100 },
+        opacity: 1.0,
         interact: false,
         css: ''
     };
@@ -124,6 +126,12 @@ function loadSourceToForm(source) {
     propInputs.muted.checked = source.audio?.muted || false;
     propInputs.volume.value = source.audio?.volume || 100;
     document.getElementById('prop-volume-val').innerText = (source.audio?.volume || 100) + '%';
+
+    // Opacity
+    const opacity = source.opacity !== undefined ? source.opacity : 1.0;
+    propInputs.opacity.value = Math.round(opacity * 100);
+    document.getElementById('prop-opacity-val').innerText = Math.round(opacity * 100) + '%';
+
     propInputs.interact.checked = source.interact || false;
     propInputs.css.value = source.css || '';
 
@@ -150,6 +158,8 @@ function updateSelectedSourceFromForm() {
     if (!source.audio) source.audio = {};
     source.audio.muted = propInputs.muted.checked;
     source.audio.volume = parseInt(propInputs.volume.value);
+
+    source.opacity = parseInt(propInputs.opacity.value) / 100;
 
     // Update list name if changed
     const item = document.querySelector(`.source-item[data-id="${selectedSourceId}"] .source-name`);
@@ -194,6 +204,9 @@ Object.values(propInputs).forEach(input => {
         updateSelectedSourceFromForm();
         if (input === propInputs.volume) {
             document.getElementById('prop-volume-val').innerText = input.value + '%';
+        }
+        if (input === propInputs.opacity) {
+            document.getElementById('prop-opacity-val').innerText = input.value + '%';
         }
     });
 });

@@ -6,146 +6,124 @@
     <title>HiChat Overlay Settings</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <!-- Icon Font (optional, using emojis for now or unicode) -->
 </head>
 <body>
     <h1>🎨 HiChat Overlay</h1>
 
     <div class="tabs">
-        <button class="tab-btn active" data-tab="chat">Chat Source</button>
-        <button class="tab-btn" data-tab="streamlabs">Streamlabs</button>
-        <button class="tab-btn" data-tab="settings">Settings</button>
+        <button class="tab-btn active" data-tab="sources">Sources</button>
+        <button class="tab-btn" data-tab="settings">Global Settings</button>
     </div>
 
-    <!-- Tab: Chat Source -->
-    <div id="chat" class="tab-content active">
-        <div class="card">
-            <div class="form-group">
-                <label for="url">YouTube / Twitch URL</label>
-                <input type="text" id="url" placeholder="https://www.youtube.com/watch?v=..." value="https://www.youtube.com/watch?v=jfKfPfyJRdk">
-                <small>Paste the full URL of the video or stream.</small>
+    <!-- Tab: Sources Manager -->
+    <div id="sources" class="tab-content active">
+        <div class="manager-layout">
+            <!-- Left: Source List -->
+            <div class="source-list-panel">
+                <div class="panel-header">
+                    <h2>Sources</h2>
+                    <button id="add-source-btn" class="btn-sm" title="Add Source">➕ Add</button>
+                </div>
+                <div class="source-list-container">
+                    <ul id="source-list">
+                        <!-- List items injected by JS -->
+                        <!-- Example:
+                        <li class="source-item active">
+                            <span class="drag-handle">::</span>
+                            <span class="source-name">Chat</span>
+                            <div class="source-actions">
+                                <button class="icon-btn">👁️</button>
+                                <button class="icon-btn">🗑️</button>
+                            </div>
+                        </li>
+                        -->
+                    </ul>
+                </div>
+                <div class="list-controls">
+                    <button id="move-up-btn" class="btn-secondary" title="Move Up">⬆️</button>
+                    <button id="move-down-btn" class="btn-secondary" title="Move Down">⬇️</button>
+                </div>
             </div>
 
-            <div class="grid-2">
-                <div class="form-group span-2">
-                    <label>Position & Adjustment</label>
-                    <div class="xy-control-wrapper">
-                        <div class="xy-inputs-col">
-                            <div class="xy-input-group">
-                                <label for="x">X</label>
-                                <input type="number" id="x" value="50">
-                            </div>
-                            <div class="xy-input-group">
-                                <label for="y">Y</label>
-                                <input type="number" id="y" value="50">
-                            </div>
+            <!-- Right: Properties -->
+            <div class="properties-panel" id="properties-panel">
+                <div class="panel-header">
+                    <h2>Properties</h2>
+                </div>
+
+                <div id="no-selection-msg">Select a source to edit</div>
+
+                <div id="properties-form" style="display: none;">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="prop-name">
+                    </div>
+
+                    <div class="form-group">
+                        <label>URL</label>
+                        <input type="text" id="prop-url" placeholder="https://...">
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Width</label>
+                            <input type="number" id="prop-width">
                         </div>
-                        <div class="xy-pad" id="xy-pad" title="Drag to adjust X/Y">
-                            <div class="xy-handle"></div>
+                        <div class="form-group">
+                            <label>Height</label>
+                            <input type="number" id="prop-height">
+                        </div>
+                        <div class="form-group">
+                            <label>X</label>
+                            <input type="number" id="prop-x">
+                        </div>
+                        <div class="form-group">
+                            <label>Y</label>
+                            <input type="number" id="prop-y">
                         </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="width">Width</label>
-                    <input type="number" id="width" value="400">
-                </div>
-                <div class="form-group">
-                    <label for="height">Height</label>
-                    <input type="number" id="height" value="600">
-                </div>
-            </div>
 
-            <div class="form-group">
-                <label>Zoom Level: <span id="zoom-val">1.0</span></label>
-                <input type="range" id="zoom" min="0.5" max="2.0" step="0.1" value="1.0">
-            </div>
+                    <div class="form-group">
+                        <label>Audio</label>
+                        <div class="audio-controls">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" id="prop-muted"> Mute
+                            </label>
+                            <input type="range" id="prop-volume" min="0" max="100" value="100">
+                            <span id="prop-volume-val">100%</span>
+                        </div>
+                    </div>
 
-            <div class="form-group">
-                <label for="css">Custom CSS</label>
-                <div class="preset-buttons">
-                    <button type="button" class="btn-secondary" id="preset-youtube">Apply YouTube Preset</button>
-                    <button type="button" class="btn-secondary" id="preset-twitch">Apply Twitch Preset</button>
-                    <button type="button" class="btn-secondary" id="preset-clear">Clear</button>
-                </div>
-                <div class="code-editor-wrapper">
-                    <pre class="code-highlight" aria-hidden="true"><code id="css-highlight" class="language-css"></code></pre>
-                    <textarea id="css" class="code-input" spellcheck="false" placeholder="/* CSS to hide headers/footers */"></textarea>
-                </div>
-            </div>
-        </div>
-    </div>
+                    <div class="form-group">
+                        <label class="toggle-wrapper">
+                            <input type="checkbox" id="prop-interact">
+                            <div class="toggle-switch"></div>
+                            <span>Interactive (Clickable)</span>
+                        </label>
+                    </div>
 
-    <!-- Tab: Streamlabs -->
-    <div id="streamlabs" class="tab-content">
-        <div class="card">
-            <div class="form-group">
-                <label for="sl-url">Streamlabs Widget URL / API Key</label>
-                <input type="text" id="sl-url" placeholder="https://streamlabs.com/alert-box/v3/...">
-            </div>
-
-            <div class="grid-2">
-                <div class="form-group">
-                    <label for="sl-width">Width</label>
-                    <input type="number" id="sl-width" value="600">
-                </div>
-                <div class="form-group">
-                    <label for="sl-height">Height</label>
-                    <input type="number" id="sl-height" value="400">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>Streamlabs Zoom: <span id="sl-zoom-val">1.0</span></label>
-                <input type="range" id="sl-zoom" min="0.5" max="2.0" step="0.1" value="1.0">
-            </div>
-
-            <div class="form-group">
-                <label for="sl-css">Streamlabs Custom CSS</label>
-                <div class="code-editor-wrapper">
-                    <pre class="code-highlight" aria-hidden="true"><code id="sl-css-highlight" class="language-css"></code></pre>
-                    <textarea id="sl-css" class="code-input" spellcheck="false" placeholder="body { background: transparent; }"></textarea>
+                    <div class="form-group">
+                        <label>Custom CSS</label>
+                        <div class="preset-buttons">
+                            <button type="button" class="btn-secondary" id="preset-yt">YouTube</button>
+                            <button type="button" class="btn-secondary" id="preset-twitch">Twitch</button>
+                            <button type="button" class="btn-secondary" id="preset-sl">Streamlabs</button>
+                        </div>
+                        <textarea id="prop-css" placeholder="/* Custom CSS */"></textarea>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tab: Settings -->
+    <!-- Tab: Global Settings -->
     <div id="settings" class="tab-content">
         <div class="card">
             <div class="form-group">
                 <label for="menu-shortcut">Menu Shortcut</label>
                 <input type="text" id="menu-shortcut" value="Shift+F1" placeholder="Shift+F1">
-                <small>Key combination to open the management menu.</small>
-            </div>
-
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Menu Scale: <span id="menu-scale-val">1.0</span></label>
-                    <input type="range" id="menu-scale" min="0.5" max="2.0" step="0.1" value="1.0">
-                </div>
-                <div class="form-group">
-                    <label>Handle Size: <span id="handle-size-val">20px</span></label>
-                    <input type="range" id="handle-size" min="10" max="50" step="2" value="20">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>UI Preview</label>
-                <div class="ui-preview-box">
-                    <div class="preview-menu-wrapper">
-                        <div class="preview-menu-bar" id="preview-menu">
-                            <span class="preview-btn">↔️</span>
-                            <span class="preview-btn">🎯</span>
-                            <span class="preview-btn">✂️</span>
-                            <span class="preview-btn">❌</span>
-                        </div>
-                    </div>
-                    <div class="preview-handle-wrapper">
-                        <div class="preview-trim-edge">
-                            <div class="preview-handle" id="preview-handle"></div>
-                        </div>
-                    </div>
-                </div>
-                <small>Preview of the overlay menu and resize handles.</small>
+                <small>Key combination to open the management menu (Edit Mode).</small>
             </div>
 
             <div class="form-group">
@@ -156,21 +134,21 @@
                 </label>
                 <small>Prevents the window from being captured by streaming software.</small>
             </div>
-        </div>
 
-        <div class="tips-box">
-            <h3>💡 Tips & Shortcuts</h3>
-            <ul>
-                <li><strong><span id="display-shortcut">Shift+F1</span></strong>: Open Control Menu</li>
-                <li><strong>Transform Mode</strong>: Drag window to move, Drag corners to resize.</li>
-                <li><strong>Trim Mode</strong>: Drag green edges to crop content.</li>
-            </ul>
+             <div class="tips-box">
+                <h3>💡 Tips</h3>
+                <ul>
+                    <li>Use <strong>Shift+F1</strong> (or your shortcut) to toggle <strong>Edit Mode</strong> on the overlay.</li>
+                    <li>In Edit Mode, you can drag and resize sources directly.</li>
+                    <li>Sources at the bottom of the list are rendered on top (Z-Index).</li>
+                </ul>
+            </div>
         </div>
     </div>
 
     <footer>
         <button id="launch" class="btn-primary">
-            🚀 Launch Overlay
+            🚀 Launch / Update Overlay
         </button>
         <div id="status" aria-live="polite"></div>
     </footer>

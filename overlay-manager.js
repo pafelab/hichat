@@ -85,7 +85,7 @@ function renderSources() {
                 height: '28px',
                 background: '#202225', // Discord-like dark
                 color: '#dcddde',
-                display: editMode ? 'flex' : 'none', // Only show in edit mode
+                display: 'flex',
                 alignItems: 'center',
                 padding: '0 8px',
                 cursor: 'move', // Entire header is drag handle
@@ -171,7 +171,7 @@ function renderSources() {
             canvas.appendChild(wrapper);
 
             // Drag Events
-            setupDragEvents(wrapper, header);
+            setupDragEvents(wrapper, dragHandle);
             // Resize Events are handled by global delegation or specific bind?
             // Since we rebuild, let's bind to handles inside wrapper
             const handles = wrapper.querySelectorAll('.resize-handle');

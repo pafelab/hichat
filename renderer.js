@@ -1,118 +1,218 @@
-// --- DOM Elements & State ---
-const tabBtns = document.querySelectorAll('.tab-btn');
-const tabContents = document.querySelectorAll('.tab-content');
+// --- State ---
+let sources = [];
+let selectedSourceId = null;
+let globalSettings = {
+    menuShortcut: 'Shift+F1',
+    hideFromObs: false
+};
+
+// --- DOM Elements ---
+const sourceListEl = document.getElementById('source-list');
+const propForm = document.getElementById('properties-form');
+const noSelectionMsg = document.getElementById('no-selection-msg');
 const launchBtn = document.getElementById('launch');
 const statusEl = document.getElementById('status');
 
+// Property Inputs
+const propInputs = {
+    name: document.getElementById('prop-name'),
+    url: document.getElementById('prop-url'),
+    width: document.getElementById('prop-width'),
+    height: document.getElementById('prop-height'),
+    x: document.getElementById('prop-x'),
+    y: document.getElementById('prop-y'),
+    muted: document.getElementById('prop-muted'),
+    volume: document.getElementById('prop-volume'),
+    interact: document.getElementById('prop-interact'),
+    css: document.getElementById('prop-css')
+};
+
+// Global Settings Inputs
+const settingsInputs = {
+    menuShortcut: document.getElementById('menu-shortcut'),
+    hideFromObs: document.getElementById('hide-from-obs')
+};
+
 // --- Helper Functions ---
+function generateId() {
+    return Math.random().toString(36).substr(2, 9);
+}
+
 function setStatus(msg, isError = false) {
     statusEl.innerText = msg;
-    if (isError) {
-        statusEl.classList.add('error');
-    } else {
-        statusEl.classList.remove('error');
+    statusEl.className = isError ? 'error' : '';
+    setTimeout(() => {
+        statusEl.innerText = '';
+        statusEl.className = '';
+    }, 3000);
+}
+
+// --- Source Management ---
+
+function addSource() {
+    const newSource = {
+        id: generateId(),
+        name: 'New Source',
+        url: '',
+        width: 400,
+        height: 600,
+        x: 50,
+        y: 50,
+        zIndex: sources.length + 1,
+        audio: { muted: false, volume: 100 },
+        interact: false,
+        css: ''
+    };
+    sources.push(newSource);
+    renderSourceList();
+    selectSource(newSource.id);
+}
+
+function removeSource(id) {
+    if (confirm('Are you sure you want to delete this source?')) {
+        sources = sources.filter(s => s.id !== id);
+        if (selectedSourceId === id) {
+            selectSource(null);
+        }
+        renderSourceList();
     }
 }
 
-// --- Tab Switching Logic ---
-tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        // Remove active class from all
-        tabBtns.forEach(b => b.classList.remove('active'));
-        tabContents.forEach(c => c.style.display = 'none'); // Reset display
+function moveSource(direction) {
+    if (!selectedSourceId) return;
+    const idx = sources.findIndex(s => s.id === selectedSourceId);
+    if (idx === -1) return;
 
-        // Add active class to clicked
-        btn.classList.add('active');
-        const targetId = btn.getAttribute('data-tab');
-        const targetContent = document.getElementById(targetId);
+    if (direction === 'up' && idx > 0) {
+        // Swap with previous
+        [sources[idx], sources[idx - 1]] = [sources[idx - 1], sources[idx]];
+    } else if (direction === 'down' && idx < sources.length - 1) {
+        // Swap with next
+        [sources[idx], sources[idx + 1]] = [sources[idx + 1], sources[idx]];
+    }
 
-        if (targetContent) {
-            targetContent.style.display = 'block';
-            targetContent.classList.add('active'); // for animation
+    // Update Z-Index based on new order
+    sources.forEach((s, i) => s.zIndex = i + 1);
+
+    renderSourceList();
+}
+
+function selectSource(id) {
+    selectedSourceId = id;
+    renderSourceList(); // Update active class
+
+    if (id) {
+        const source = sources.find(s => s.id === id);
+        if (source) {
+            loadSourceToForm(source);
+            propForm.style.display = 'block';
+            noSelectionMsg.style.display = 'none';
+        }
+    } else {
+        propForm.style.display = 'none';
+        noSelectionMsg.style.display = 'block';
+    }
+}
+
+function loadSourceToForm(source) {
+    propInputs.name.value = source.name || '';
+    propInputs.url.value = source.url || '';
+    propInputs.width.value = source.width || 400;
+    propInputs.height.value = source.height || 600;
+    propInputs.x.value = source.x || 0;
+    propInputs.y.value = source.y || 0;
+    propInputs.muted.checked = source.audio?.muted || false;
+    propInputs.volume.value = source.audio?.volume || 100;
+    document.getElementById('prop-volume-val').innerText = (source.audio?.volume || 100) + '%';
+    propInputs.interact.checked = source.interact || false;
+    propInputs.css.value = source.css || '';
+
+    // Trigger highlight update if needed
+    if (document.getElementById('css-highlight')) {
+        // highlightCSS(source.css || ''); // If syntax highlighter exists
+    }
+}
+
+function updateSelectedSourceFromForm() {
+    if (!selectedSourceId) return;
+    const source = sources.find(s => s.id === selectedSourceId);
+    if (!source) return;
+
+    source.name = propInputs.name.value;
+    source.url = propInputs.url.value;
+    source.width = parseInt(propInputs.width.value) || 100;
+    source.height = parseInt(propInputs.height.value) || 100;
+    source.x = parseInt(propInputs.x.value) || 0;
+    source.y = parseInt(propInputs.y.value) || 0;
+    source.interact = propInputs.interact.checked;
+    source.css = propInputs.css.value;
+
+    if (!source.audio) source.audio = {};
+    source.audio.muted = propInputs.muted.checked;
+    source.audio.volume = parseInt(propInputs.volume.value);
+
+    // Update list name if changed
+    const item = document.querySelector(`.source-item[data-id="${selectedSourceId}"] .source-name`);
+    if (item) item.innerText = source.name;
+}
+
+function renderSourceList() {
+    sourceListEl.innerHTML = '';
+    sources.forEach((source, index) => {
+        const li = document.createElement('li');
+        li.className = `source-item ${source.id === selectedSourceId ? 'active' : ''}`;
+        li.dataset.id = source.id;
+        li.onclick = () => selectSource(source.id);
+
+        li.innerHTML = `
+            <span class="source-name">${source.name || 'Source'}</span>
+            <div class="source-actions">
+                <button class="icon-btn delete-btn" title="Remove">🗑️</button>
+            </div>
+        `;
+
+        // Stop propagation for delete
+        const delBtn = li.querySelector('.delete-btn');
+        delBtn.onclick = (e) => {
+            e.stopPropagation();
+            removeSource(source.id);
+        };
+
+        sourceListEl.appendChild(li);
+    });
+}
+
+// --- Event Listeners ---
+
+document.getElementById('add-source-btn').addEventListener('click', addSource);
+document.getElementById('move-up-btn').addEventListener('click', () => moveSource('up'));
+document.getElementById('move-down-btn').addEventListener('click', () => moveSource('down'));
+
+// Bind Inputs
+Object.values(propInputs).forEach(input => {
+    input.addEventListener('input', () => {
+        updateSelectedSourceFromForm();
+        if (input === propInputs.volume) {
+            document.getElementById('prop-volume-val').innerText = input.value + '%';
         }
     });
 });
 
-// Initialize first tab
-if (tabBtns.length > 0) {
-    tabBtns[0].click();
+// Bind Settings
+if (settingsInputs.menuShortcut) {
+    settingsInputs.menuShortcut.addEventListener('input', (e) => {
+        globalSettings.menuShortcut = e.target.value;
+    });
 }
-
-
-// --- Launch Logic ---
-launchBtn.addEventListener('click', () => {
-    // Gather values
-    const url = document.getElementById('url').value;
-    const css = document.getElementById('css').value;
-    const x = parseInt(document.getElementById('x').value) || 0;
-    const y = parseInt(document.getElementById('y').value) || 0;
-    const width = parseInt(document.getElementById('width').value) || 400;
-    const height = parseInt(document.getElementById('height').value) || 600;
-    const zoom = parseFloat(document.getElementById('zoom').value) || 1.0;
-
-    // Streamlabs values
-    const slUrl = document.getElementById('sl-url').value;
-    const slWidth = parseInt(document.getElementById('sl-width').value) || 600;
-    const slHeight = parseInt(document.getElementById('sl-height').value) || 400;
-    const slZoom = parseFloat(document.getElementById('sl-zoom').value) || 1.0;
-    const slCss = document.getElementById('sl-css').value;
-
-    // Settings
-    const menuShortcut = document.getElementById('menu-shortcut').value || 'Shift+F1';
-    const hideFromObs = document.getElementById('hide-from-obs').checked;
-    const menuScale = parseFloat(document.getElementById('menu-scale').value) || 1.0;
-    const handleSize = parseInt(document.getElementById('handle-size').value) || 20;
-
-    if (!url && !slUrl) {
-        setStatus('Please enter at least one URL (YouTube/Twitch or Streamlabs)', true);
-        return;
-    }
-
-    // UI Feedback
-    const originalText = launchBtn.innerText;
-    launchBtn.disabled = true;
-    launchBtn.innerText = '🚀 Launching...';
-
-    // Send IPC
-    if (window.api) {
-        window.api.send('launch-overlay', {
-            url, css, x, y, width, height, zoom, menuShortcut, hideFromObs,
-            slUrl, slWidth, slHeight, slZoom, slCss,
-            menuScale, handleSize
-        });
-    } else {
-        console.warn('Electron API not available');
-    }
-
-    setStatus('Overlay launched successfully!');
-
-    setTimeout(() => {
-        launchBtn.disabled = false;
-        launchBtn.innerText = originalText;
-    }, 2000);
-});
-
-// --- Real-time Zoom Display ---
-document.getElementById('zoom').addEventListener('input', (e) => {
-    document.getElementById('zoom-val').innerText = e.target.value;
-});
-document.getElementById('sl-zoom').addEventListener('input', (e) => {
-    document.getElementById('sl-zoom-val').innerText = e.target.value;
-});
-
-// --- Shortcut Display Update ---
-const shortcutInput = document.getElementById('menu-shortcut');
-const displayShortcut = document.getElementById('display-shortcut');
-if (shortcutInput && displayShortcut) {
-    shortcutInput.addEventListener('input', () => {
-        displayShortcut.textContent = shortcutInput.value || 'Shift+F1';
+if (settingsInputs.hideFromObs) {
+    settingsInputs.hideFromObs.addEventListener('change', (e) => {
+        globalSettings.hideFromObs = e.target.checked;
     });
 }
 
-
-// --- CSS Presets ---
+// CSS Presets
 const PRESETS = {
-    youtube: `/* YouTube Chat Minimalist */
+    yt: `/* YouTube Chat Minimalist */
 body { background-color: transparent !important; }
 yt-live-chat-renderer { background-color: transparent !important; }
 yt-live-chat-text-message-renderer {
@@ -136,323 +236,111 @@ body { background-color: transparent !important; }
 .stream-chat-header,
 .chat-input {
     display: none !important;
-}`
+}`,
+    sl: `body { background: transparent; overflow: hidden; }`
 };
 
-const presetYoutubeBtn = document.getElementById('preset-youtube');
-const presetTwitchBtn = document.getElementById('preset-twitch');
-const presetClearBtn = document.getElementById('preset-clear');
-const cssTextarea = document.getElementById('css');
-
-if (presetYoutubeBtn) {
-    presetYoutubeBtn.addEventListener('click', () => {
-        cssTextarea.value = PRESETS.youtube;
-    });
-}
-
-if (presetTwitchBtn) {
-    presetTwitchBtn.addEventListener('click', () => {
-        cssTextarea.value = PRESETS.twitch;
-    });
-}
-
-if (presetClearBtn) {
-    presetClearBtn.addEventListener('click', () => {
-        cssTextarea.value = '';
-    });
-}
-
-
-// --- Load Settings (IPC) ---
-if (window.api) {
-    window.api.on('load-settings', (settings) => {
-        if (settings.url) document.getElementById('url').value = settings.url;
-        if (settings.css) document.getElementById('css').value = settings.css;
-        if (settings.x) document.getElementById('x').value = settings.x;
-        if (settings.y) document.getElementById('y').value = settings.y;
-        if (settings.width) document.getElementById('width').value = settings.width;
-        if (settings.height) document.getElementById('height').value = settings.height;
-        if (settings.zoom) {
-            document.getElementById('zoom').value = settings.zoom;
-            document.getElementById('zoom-val').innerText = settings.zoom;
-        }
-        if (settings.menuShortcut) {
-            document.getElementById('menu-shortcut').value = settings.menuShortcut;
-            if (displayShortcut) displayShortcut.textContent = settings.menuShortcut;
-        }
-        if (settings.hideFromObs) document.getElementById('hide-from-obs').checked = settings.hideFromObs;
-    if (settings.menuScale) {
-        document.getElementById('menu-scale').value = settings.menuScale;
-        document.getElementById('menu-scale-val').innerText = settings.menuScale;
-        updatePreview();
-    }
-    if (settings.handleSize) {
-        document.getElementById('handle-size').value = settings.handleSize;
-        document.getElementById('handle-size-val').innerText = settings.handleSize + 'px';
-        updatePreview();
-    }
-
-        // Streamlabs
-        if (settings.slUrl) document.getElementById('sl-url').value = settings.slUrl;
-        if (settings.slWidth) document.getElementById('sl-width').value = settings.slWidth;
-        if (settings.slHeight) document.getElementById('sl-height').value = settings.slHeight;
-        if (settings.slZoom) {
-            document.getElementById('sl-zoom').value = settings.slZoom;
-            document.getElementById('sl-zoom-val').innerText = settings.slZoom;
-        }
-        if (settings.slCss) document.getElementById('sl-css').value = settings.slCss;
-    });
-}
-
-// --- Coordinate Pad Logic ---
-function setupCoordinatePad() {
-    const pad = document.getElementById('xy-pad');
-    const handle = pad.querySelector('.xy-handle');
-    const xInput = document.getElementById('x');
-    const yInput = document.getElementById('y');
-
-    if (!pad || !handle || !xInput || !yInput) return;
-
-    let isDragging = false;
-    let startX, startY;
-    const padRect = pad.getBoundingClientRect();
-    const centerX = padRect.width / 2;
-    const centerY = padRect.height / 2;
-
-    const updateHandle = (dx, dy) => {
-        // Clamp visually within the pad (approx 40px radius from center)
-        const maxDist = 40;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        let visualDx = dx;
-        let visualDy = dy;
-
-        if (dist > maxDist) {
-            const ratio = maxDist / dist;
-            visualDx = dx * ratio;
-            visualDy = dy * ratio;
-        }
-
-        handle.style.transform = `translate(calc(-50% + ${visualDx}px), calc(-50% + ${visualDy}px))`;
-    };
-
-    const resetHandle = () => {
-        handle.style.transform = `translate(-50%, -50%)`;
-    };
-
-    pad.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        document.body.style.cursor = 'move';
-        pad.classList.add('active');
-    });
-
-    window.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-
-        if (dx !== 0 || dy !== 0) {
-            let currentX = parseInt(xInput.value) || 0;
-            let currentY = parseInt(yInput.value) || 0;
-
-            xInput.value = currentX + dx;
-            yInput.value = currentY + dy;
-
-            // Reset start to current for accumulation
-            startX = e.clientX;
-            startY = e.clientY;
-
-            // For visual handle, we want it to feel like it's being pulled
-            // But since we reset startX/Y, dx is always small per frame.
-            // A true joystick would need an anchor.
-            // Let's create a "virtual anchor" effect by tracking total displacement from mouse down?
-            // No, the user wants "drag to adjust".
-            // Just showing the handle offset slightly in the direction of movement is enough feedback.
-            updateHandle(dx * 2, dy * 2); // Amplify slightly for visibility
-        }
-    });
-
-    window.addEventListener('mouseup', () => {
-        if (isDragging) {
-            isDragging = false;
-            document.body.style.cursor = '';
-            pad.classList.remove('active');
-            resetHandle();
-        }
-    });
-
-    // Also reset on mouseleave just in case
-    pad.addEventListener('mouseleave', () => {
-        if (isDragging) {
-            isDragging = false;
-            document.body.style.cursor = '';
-            pad.classList.remove('active');
-            resetHandle();
-        }
-    });
-}
-
-// --- Preview Logic ---
-const menuScaleInput = document.getElementById('menu-scale');
-const handleSizeInput = document.getElementById('handle-size');
-const previewMenu = document.getElementById('preview-menu');
-const previewHandle = document.getElementById('preview-handle');
-
-function updatePreview() {
-    const scale = menuScaleInput.value;
-    const size = handleSizeInput.value;
-
-    document.getElementById('menu-scale-val').innerText = scale;
-    document.getElementById('handle-size-val').innerText = size + 'px';
-
-    if (previewMenu) {
-        previewMenu.style.transform = `scale(${scale})`;
-    }
-    if (previewHandle) {
-        previewHandle.style.width = `${size}px`;
-        previewHandle.style.height = `${size}px`;
-    }
-}
-
-if (menuScaleInput && handleSizeInput) {
-    menuScaleInput.addEventListener('input', updatePreview);
-    handleSizeInput.addEventListener('input', updatePreview);
-    updatePreview(); // Init
-}
-
-// --- CSS Syntax Highlighter ---
-function escapeHtml(text) {
-    return text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-function highlightCSS(code) {
-    let html = '';
-    let i = 0;
-    const len = code.length;
-
-    while (i < len) {
-        // Comments /* ... */
-        if (code.startsWith('/*', i)) {
-            const end = code.indexOf('*/', i + 2);
-            const content = (end === -1) ? code.slice(i) : code.slice(i, end + 2);
-            html += '<span class="token-comment">' + escapeHtml(content) + '</span>';
-            i += content.length;
-            continue;
-        }
-
-        // Strings "..." or '...'
-        if (code[i] === '"' || code[i] === "'") {
-            const quote = code[i];
-            let end = i + 1;
-            while (end < len && (code[end] !== quote || code[end-1] === '\\')) { // Simple escape check
-                end++;
+['yt', 'twitch', 'sl'].forEach(key => {
+    const btn = document.getElementById(`preset-${key}`);
+    if (btn) {
+        btn.addEventListener('click', () => {
+            if (selectedSourceId) {
+                propInputs.css.value = PRESETS[key];
+                updateSelectedSourceFromForm();
             }
-            if (end < len) end++;
-            const content = code.slice(i, end);
-            html += '<span class="token-string">' + escapeHtml(content) + '</span>';
-            i += content.length;
-            continue;
-        }
-
-        // Punctuation
-        if ('{}:;'.includes(code[i])) {
-            html += '<span class="token-punctuation">' + escapeHtml(code[i]) + '</span>';
-            i++;
-            continue;
-        }
-
-        // Whitespace
-        if (/\s/.test(code[i])) {
-            html += code[i];
-            i++;
-            continue;
-        }
-
-        // Word (Selector, Property, Value)
-        let j = i;
-        while (j < len && !' \t\n\r{}:;/"\''.includes(code[j])) {
-            j++;
-        }
-        const word = code.slice(i, j);
-
-        // Simple context heuristic
-        let k = j;
-        while (k < len && /\s/.test(code[k])) k++;
-
-        let type = 'token-value';
-
-        if (word.startsWith('.') || word.startsWith('#') || (k < len && code[k] === '{')) {
-            type = 'token-selector';
-        } else if (k < len && code[k] === ':') {
-            // Check if we are inside a declaration block? Hard to know.
-            // But usually 'property:'
-            type = 'token-property';
-        } else {
-            type = 'token-value';
-        }
-
-        html += '<span class="' + type + '">' + escapeHtml(word) + '</span>';
-        i = j;
-    }
-
-    // Ensure trailing newlines render in pre
-    if (code.endsWith('\n')) {
-        html += ' ';
-    }
-
-    return html;
-}
-
-function setupSyntaxHighlighter() {
-    const editors = [
-        { input: 'css', highlight: 'css-highlight' },
-        { input: 'sl-css', highlight: 'sl-css-highlight' }
-    ];
-
-    editors.forEach(editor => {
-        const textarea = document.getElementById(editor.input);
-        const code = document.getElementById(editor.highlight);
-
-        if (!textarea || !code) return;
-
-        const update = () => {
-            code.innerHTML = highlightCSS(textarea.value);
-            // Sync scroll
-            code.scrollTop = textarea.scrollTop;
-            code.scrollLeft = textarea.scrollLeft;
-        };
-
-        textarea.addEventListener('input', update);
-        textarea.addEventListener('scroll', () => {
-             code.scrollTop = textarea.scrollTop;
-             code.scrollLeft = textarea.scrollLeft;
         });
-
-        // Sync initially and on preset buttons
-        update();
-
-        // Hook into preset buttons for #css
-        if (editor.input === 'css') {
-            const btns = document.querySelectorAll('.preset-buttons button');
-            btns.forEach(btn => btn.addEventListener('click', () => setTimeout(update, 0)));
-        }
-    });
-}
-
-// Initialize features
-document.addEventListener('DOMContentLoaded', () => {
-    setupCoordinatePad();
-    setupSyntaxHighlighter();
+    }
 });
 
-// Also run setup immediately in case DOM is already ready (script at end of body)
-setupCoordinatePad();
-setupSyntaxHighlighter();
+// Tab Switching
+const tabBtns = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active')); // use class instead of style display for css animation
+
+        btn.classList.add('active');
+        const targetId = btn.getAttribute('data-tab');
+        document.getElementById(targetId).classList.add('active');
+    });
+});
+
+// Launch Button
+launchBtn.addEventListener('click', () => {
+    if (sources.length === 0) {
+        setStatus('Please add at least one source.', true);
+        return;
+    }
+
+    launchBtn.disabled = true;
+    launchBtn.innerText = '🚀 Launching...';
+
+    // Send to Main
+    if (window.api) {
+        window.api.send('launch-overlay', {
+            sources,
+            settings: globalSettings
+        });
+    }
+
+    setStatus('Overlay launched / updated!');
+    setTimeout(() => {
+        launchBtn.disabled = false;
+        launchBtn.innerText = '🚀 Launch / Update Overlay';
+    }, 2000);
+});
+
+// --- IPC Inbound ---
+
+if (window.api) {
+    window.api.on('load-settings', (data) => {
+        if (data.sources) {
+            sources = data.sources;
+            renderSourceList();
+        }
+        if (data.settings) {
+            globalSettings = data.settings;
+            if (settingsInputs.menuShortcut) settingsInputs.menuShortcut.value = globalSettings.menuShortcut || 'Shift+F1';
+            if (settingsInputs.hideFromObs) settingsInputs.hideFromObs.checked = globalSettings.hideFromObs || false;
+        }
+
+        // Legacy Config Migration (if needed)
+        // If sources is empty but we have 'url' in data, migrate it.
+        if ((!sources || sources.length === 0) && data.url) {
+            addSource(); // Add default
+            const s = sources[0];
+            s.name = 'Legacy Chat';
+            s.url = data.url;
+            s.css = data.css;
+            s.x = data.x;
+            s.y = data.y;
+            s.width = data.width;
+            s.height = data.height;
+            renderSourceList();
+        }
+    });
+
+    window.api.on('sources-modified', (newSources) => {
+        // Update local state from Overlay changes (drag/resize)
+        // We merge carefully to avoid overwriting current form edits if possible
+        // But for simplicity, we just update position/size
+
+        newSources.forEach(ns => {
+            const local = sources.find(s => s.id === ns.id);
+            if (local) {
+                local.x = ns.x;
+                local.y = ns.y;
+                local.width = ns.width;
+                local.height = ns.height;
+            }
+        });
+
+        // Refresh form if open
+        if (selectedSourceId) {
+            const current = sources.find(s => s.id === selectedSourceId);
+            if (current) loadSourceToForm(current);
+        }
+    });
+}

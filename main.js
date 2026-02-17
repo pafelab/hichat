@@ -104,6 +104,10 @@ function createOverlayWindow(settings) {
             overlayWindow.setIgnoreMouseEvents(false);
         } else if (channel === 'menu-closed') {
             overlayWindow.setIgnoreMouseEvents(true, { forward: true });
+        } else if (channel === 'set-ignore-mouse') {
+            const ignore = args[0];
+            const options = args[1];
+            overlayWindow.setIgnoreMouseEvents(ignore, options);
         } else if (channel === 'sources-modified') {
             // Update cached config and notify settings window
             const sources = args[0];

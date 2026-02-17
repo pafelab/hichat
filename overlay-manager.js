@@ -502,3 +502,44 @@ function updateMenuState() {
     container.remove();
     toggleMenu(true);
 }
+
+// --- Global Tab Logic ---
+(function setupGlobalTab() {
+    const tab = document.getElementById('app-control-tab');
+    const slider = document.getElementById('global-opacity-slider');
+    const bg = document.getElementById('edit-background');
+    const burger = tab ? tab.querySelector('.burger-icon') : null;
+
+    // Opacity Slider
+    if (slider && bg) {
+        const updateOpacity = () => {
+             const val = slider.value / 100;
+             bg.style.backgroundColor = `rgba(0, 0, 0, ${val})`;
+        };
+        slider.addEventListener('input', updateOpacity);
+        // Initialize
+        updateOpacity();
+    }
+
+    // Burger Menu Toggle
+    if (burger) {
+        burger.addEventListener('click', () => {
+            toggleMenu(!menuOpen);
+        });
+    }
+
+    // Mouse Interaction Handling for Dragging
+    if (tab) {
+        tab.addEventListener('mouseenter', () => {
+            // Enable mouse events on the window so we can drag
+            ipcRenderer.send('set-ignore-mouse', false);
+        });
+
+        tab.addEventListener('mouseleave', () => {
+            // Restore click-through unless menu or edit mode is active
+            if (!menuOpen && !editMode) {
+                ipcRenderer.send('set-ignore-mouse', true, { forward: true });
+            }
+        });
+    }
+})();

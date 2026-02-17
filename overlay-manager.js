@@ -304,6 +304,9 @@ const menuStyles = `
 
 function toggleMenu(show) {
     menuOpen = show;
+    editMode = show; // Automatically toggle edit mode with menu
+    renderSources(); // Apply visual changes
+
     let container = document.getElementById('custom-menu-container');
 
     if (show) {

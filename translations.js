@@ -36,8 +36,16 @@ const translations = {
         "statusLaunched": "Overlay launched / updated!",
         "errorAddSource": "Please add at least one source.",
         "confirmDelete": "Are you sure you want to delete this source?",
-        "btnDelete": "🗑️ Delete Source"
-        "btnClose": "Close Program"
+        "btnDelete": "🗑️ Delete Source",
+        "btnClose": "Close Program",
+        "updateTitle": "Updates",
+        "btnCheckUpdate": "Check for Updates",
+        "msgUpdateAvailable": "Update available. Downloading...",
+        "msgUpdateNotAvailable": "You are up to date.",
+        "msgUpdateError": "Error checking for updates.",
+        "msgUpdateDownloaded": "Update downloaded. Restart to install.",
+        "btnRestart": "Restart & Install",
+        "msgChecking": "Checking for updates..."
     },
     "th": {
         "appTitle": "HiChat โอเวอร์เลย์",
@@ -76,8 +84,16 @@ const translations = {
         "statusLaunched": "เริ่มทำงาน / อัปเดตเรียบร้อย!",
         "errorAddSource": "กรุณาเพิ่มจออย่างน้อย 1 จอ",
         "confirmDelete": "คุณแน่ใจหรือไม่ที่จะลบจอนี้?",
-        "btnDelete": "🗑️ ลบจอ"
-        "btnClose": "ปิดโปรแกรม"
+        "btnDelete": "🗑️ ลบจอ",
+        "btnClose": "ปิดโปรแกรม",
+        "updateTitle": "อัปเดต",
+        "btnCheckUpdate": "ตรวจสอบอัปเดต",
+        "msgUpdateAvailable": "มีอัปเดตใหม่ กำลังดาวน์โหลด...",
+        "msgUpdateNotAvailable": "เป็นเวอร์ชั่นล่าสุดแล้ว",
+        "msgUpdateError": "เกิดข้อผิดพลาดในการตรวจสอบ",
+        "msgUpdateDownloaded": "ดาวน์โหลดเรียบร้อย รีสตาร์ทเพื่อติดตั้ง",
+        "btnRestart": "รีสตาร์ทและติดตั้ง",
+        "msgChecking": "กำลังตรวจสอบอัปเดต..."
     },
     "zh": {
         "appTitle": "HiChat 覆盖层",
@@ -116,8 +132,16 @@ const translations = {
         "statusLaunched": "覆盖层已启动/更新！",
         "errorAddSource": "请至少添加一个来源。",
         "confirmDelete": "您确定要删除此来源吗？",
-        "btnDelete": "🗑️ 删除来源"
-        "btnClose": "关闭程序"
+        "btnDelete": "🗑️ 删除来源",
+        "btnClose": "关闭程序",
+        "updateTitle": "Updates",
+        "btnCheckUpdate": "Check for Updates",
+        "msgUpdateAvailable": "Update available. Downloading...",
+        "msgUpdateNotAvailable": "You are up to date.",
+        "msgUpdateError": "Error checking for updates.",
+        "msgUpdateDownloaded": "Update downloaded. Restart to install.",
+        "btnRestart": "Restart & Install",
+        "msgChecking": "Checking for updates..."
     },
     "ja": {
         "appTitle": "HiChat オーバーレイ",
@@ -156,8 +180,16 @@ const translations = {
         "statusLaunched": "オーバーレイを起動/更新しました！",
         "errorAddSource": "少なくとも1つのソースを追加してください。",
         "confirmDelete": "このソースを削除してもよろしいですか？",
-        "btnDelete": "🗑️ ソースを削除"
-        "btnClose": "プログラムを終了"
+        "btnDelete": "🗑️ ソースを削除",
+        "btnClose": "プログラムを終了",
+        "updateTitle": "Updates",
+        "btnCheckUpdate": "Check for Updates",
+        "msgUpdateAvailable": "Update available. Downloading...",
+        "msgUpdateNotAvailable": "You are up to date.",
+        "msgUpdateError": "Error checking for updates.",
+        "msgUpdateDownloaded": "Update downloaded. Restart to install.",
+        "btnRestart": "Restart & Install",
+        "msgChecking": "Checking for updates..."
     },
     "de": {
         "appTitle": "HiChat Overlay",
@@ -196,8 +228,16 @@ const translations = {
         "statusLaunched": "Overlay gestartet / aktualisiert!",
         "errorAddSource": "Bitte fügen Sie mindestens eine Quelle hinzu.",
         "confirmDelete": "Sind Sie sicher, dass Sie diese Quelle löschen möchten?",
-        "btnDelete": "🗑️ Quelle löschen"
-        "btnClose": "Programm schließen"
+        "btnDelete": "🗑️ Quelle löschen",
+        "btnClose": "Programm schließen",
+        "updateTitle": "Updates",
+        "btnCheckUpdate": "Check for Updates",
+        "msgUpdateAvailable": "Update available. Downloading...",
+        "msgUpdateNotAvailable": "You are up to date.",
+        "msgUpdateError": "Error checking for updates.",
+        "msgUpdateDownloaded": "Update downloaded. Restart to install.",
+        "btnRestart": "Restart & Install",
+        "msgChecking": "Checking for updates..."
     },
     "it": {
         "appTitle": "HiChat Overlay",
@@ -236,8 +276,16 @@ const translations = {
         "statusLaunched": "Overlay avviato / aggiornato!",
         "errorAddSource": "Aggiungi almeno una sorgente.",
         "confirmDelete": "Sei sicuro di voler eliminare questa sorgente?",
-        "btnDelete": "🗑️ Elimina Sorgente"
-        "btnClose": "Chiudi programma"
+        "btnDelete": "🗑️ Elimina Sorgente",
+        "btnClose": "Chiudi programma",
+        "updateTitle": "Updates",
+        "btnCheckUpdate": "Check for Updates",
+        "msgUpdateAvailable": "Update available. Downloading...",
+        "msgUpdateNotAvailable": "You are up to date.",
+        "msgUpdateError": "Error checking for updates.",
+        "msgUpdateDownloaded": "Update downloaded. Restart to install.",
+        "btnRestart": "Restart & Install",
+        "msgChecking": "Checking for updates..."
     },
     "es": {
         "appTitle": "HiChat Overlay",
@@ -276,8 +324,16 @@ const translations = {
         "statusLaunched": "¡Overlay lanzado / actualizado!",
         "errorAddSource": "Por favor, agrega al menos una fuente.",
         "confirmDelete": "¿Estás seguro de que deseas eliminar esta fuente?",
-        "btnDelete": "🗑️ Eliminar Fuente"
-        "btnClose": "Cerrar programa"
+        "btnDelete": "🗑️ Eliminar Fuente",
+        "btnClose": "Cerrar programa",
+        "updateTitle": "Updates",
+        "btnCheckUpdate": "Check for Updates",
+        "msgUpdateAvailable": "Update available. Downloading...",
+        "msgUpdateNotAvailable": "You are up to date.",
+        "msgUpdateError": "Error checking for updates.",
+        "msgUpdateDownloaded": "Update downloaded. Restart to install.",
+        "btnRestart": "Restart & Install",
+        "msgChecking": "Checking for updates..."
     },
     "id": {
         "appTitle": "HiChat Overlay",
@@ -316,8 +372,16 @@ const translations = {
         "statusLaunched": "Overlay diluncurkan / diperbarui!",
         "errorAddSource": "Harap tambahkan setidaknya satu sumber.",
         "confirmDelete": "Apakah Anda yakin ingin menghapus sumber ini?",
-        "btnDelete": "🗑️ Hapus Sumber"
-        "btnClose": "Tutup Program"
+        "btnDelete": "🗑️ Hapus Sumber",
+        "btnClose": "Tutup Program",
+        "updateTitle": "Updates",
+        "btnCheckUpdate": "Check for Updates",
+        "msgUpdateAvailable": "Update available. Downloading...",
+        "msgUpdateNotAvailable": "You are up to date.",
+        "msgUpdateError": "Error checking for updates.",
+        "msgUpdateDownloaded": "Update downloaded. Restart to install.",
+        "btnRestart": "Restart & Install",
+        "msgChecking": "Checking for updates..."
     }
 };
 

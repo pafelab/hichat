@@ -10,6 +10,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/user/repo.git"
+  },
   "devDependencies": {
     "electron": "^40.4.1",
     "electron-builder": "^26.7.0"
@@ -40,6 +44,17 @@
     },
     "directories": {
       "output": "dist"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "user",
+        "repo": "repo"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.7.3"
   }
 }

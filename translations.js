@@ -38,7 +38,15 @@ const translations = {
         "errorAddSource": "Please add at least one source.",
         "confirmDelete": "Are you sure you want to delete this source?",
         "btnDelete": "🗑️ Delete Source",
-        "btnClose": "Close Program"
+        "btnClose": "Close Program",
+        "updateTitle": "Updates",
+        "btnCheckUpdate": "Check for Updates",
+        "msgUpdateAvailable": "Update available. Downloading...",
+        "msgUpdateNotAvailable": "You are up to date.",
+        "msgUpdateError": "Error checking for updates.",
+        "msgUpdateDownloaded": "Update downloaded. Restart to install.",
+        "btnRestart": "Restart & Install",
+        "msgChecking": "Checking for updates..."
     },
     "th": {
         "appTitle": "HiChat โอเวอร์เลย์",
@@ -79,7 +87,15 @@ const translations = {
         "errorAddSource": "กรุณาเพิ่มจออย่างน้อย 1 จอ",
         "confirmDelete": "คุณแน่ใจหรือไม่ที่จะลบจอนี้?",
         "btnDelete": "🗑️ ลบจอ",
-        "btnClose": "ปิดโปรแกรม"
+        "btnClose": "ปิดโปรแกรม",
+        "updateTitle": "อัปเดต",
+        "btnCheckUpdate": "ตรวจสอบอัปเดต",
+        "msgUpdateAvailable": "มีอัปเดตใหม่ กำลังดาวน์โหลด...",
+        "msgUpdateNotAvailable": "เป็นเวอร์ชั่นล่าสุดแล้ว",
+        "msgUpdateError": "เกิดข้อผิดพลาดในการตรวจสอบ",
+        "msgUpdateDownloaded": "ดาวน์โหลดเรียบร้อย รีสตาร์ทเพื่อติดตั้ง",
+        "btnRestart": "รีสตาร์ทและติดตั้ง",
+        "msgChecking": "กำลังตรวจสอบอัปเดต..."
     },
     "zh": {
         "appTitle": "HiChat 覆盖层",
@@ -120,7 +136,15 @@ const translations = {
         "errorAddSource": "请至少添加一个来源。",
         "confirmDelete": "您确定要删除此来源吗？",
         "btnDelete": "🗑️ 删除来源",
-        "btnClose": "关闭程序"
+        "btnClose": "关闭程序",
+        "updateTitle": "Updates",
+        "btnCheckUpdate": "Check for Updates",
+        "msgUpdateAvailable": "Update available. Downloading...",
+        "msgUpdateNotAvailable": "You are up to date.",
+        "msgUpdateError": "Error checking for updates.",
+        "msgUpdateDownloaded": "Update downloaded. Restart to install.",
+        "btnRestart": "Restart & Install",
+        "msgChecking": "Checking for updates..."
     },
     "ja": {
         "appTitle": "HiChat オーバーレイ",
@@ -161,7 +185,15 @@ const translations = {
         "errorAddSource": "少なくとも1つのソースを追加してください。",
         "confirmDelete": "このソースを削除してもよろしいですか？",
         "btnDelete": "🗑️ ソースを削除",
-        "btnClose": "プログラムを終了"
+        "btnClose": "プログラムを終了",
+        "updateTitle": "Updates",
+        "btnCheckUpdate": "Check for Updates",
+        "msgUpdateAvailable": "Update available. Downloading...",
+        "msgUpdateNotAvailable": "You are up to date.",
+        "msgUpdateError": "Error checking for updates.",
+        "msgUpdateDownloaded": "Update downloaded. Restart to install.",
+        "btnRestart": "Restart & Install",
+        "msgChecking": "Checking for updates..."
     },
     "de": {
         "appTitle": "HiChat Overlay",
@@ -202,7 +234,15 @@ const translations = {
         "errorAddSource": "Bitte fügen Sie mindestens eine Quelle hinzu.",
         "confirmDelete": "Sind Sie sicher, dass Sie diese Quelle löschen möchten?",
         "btnDelete": "🗑️ Quelle löschen",
-        "btnClose": "Programm schließen"
+        "btnClose": "Programm schließen",
+        "updateTitle": "Updates",
+        "btnCheckUpdate": "Check for Updates",
+        "msgUpdateAvailable": "Update available. Downloading...",
+        "msgUpdateNotAvailable": "You are up to date.",
+        "msgUpdateError": "Error checking for updates.",
+        "msgUpdateDownloaded": "Update downloaded. Restart to install.",
+        "btnRestart": "Restart & Install",
+        "msgChecking": "Checking for updates..."
     },
     "it": {
         "appTitle": "HiChat Overlay",
@@ -243,7 +283,15 @@ const translations = {
         "errorAddSource": "Aggiungi almeno una sorgente.",
         "confirmDelete": "Sei sicuro di voler eliminare questa sorgente?",
         "btnDelete": "🗑️ Elimina Sorgente",
-        "btnClose": "Chiudi programma"
+        "btnClose": "Chiudi programma",
+        "updateTitle": "Updates",
+        "btnCheckUpdate": "Check for Updates",
+        "msgUpdateAvailable": "Update available. Downloading...",
+        "msgUpdateNotAvailable": "You are up to date.",
+        "msgUpdateError": "Error checking for updates.",
+        "msgUpdateDownloaded": "Update downloaded. Restart to install.",
+        "btnRestart": "Restart & Install",
+        "msgChecking": "Checking for updates..."
     },
     "es": {
         "appTitle": "HiChat Overlay",
@@ -284,7 +332,15 @@ const translations = {
         "errorAddSource": "Por favor, agrega al menos una fuente.",
         "confirmDelete": "¿Estás seguro de que deseas eliminar esta fuente?",
         "btnDelete": "🗑️ Eliminar Fuente",
-        "btnClose": "Cerrar programa"
+        "btnClose": "Cerrar programa",
+        "updateTitle": "Updates",
+        "btnCheckUpdate": "Check for Updates",
+        "msgUpdateAvailable": "Update available. Downloading...",
+        "msgUpdateNotAvailable": "You are up to date.",
+        "msgUpdateError": "Error checking for updates.",
+        "msgUpdateDownloaded": "Update downloaded. Restart to install.",
+        "btnRestart": "Restart & Install",
+        "msgChecking": "Checking for updates..."
     },
     "id": {
         "appTitle": "HiChat Overlay",
@@ -325,7 +381,15 @@ const translations = {
         "errorAddSource": "Harap tambahkan setidaknya satu sumber.",
         "confirmDelete": "Apakah Anda yakin ingin menghapus sumber ini?",
         "btnDelete": "🗑️ Hapus Sumber",
-        "btnClose": "Tutup Program"
+        "btnClose": "Tutup Program",
+        "updateTitle": "Updates",
+        "btnCheckUpdate": "Check for Updates",
+        "msgUpdateAvailable": "Update available. Downloading...",
+        "msgUpdateNotAvailable": "You are up to date.",
+        "msgUpdateError": "Error checking for updates.",
+        "msgUpdateDownloaded": "Update downloaded. Restart to install.",
+        "btnRestart": "Restart & Install",
+        "msgChecking": "Checking for updates..."
     }
 };
 

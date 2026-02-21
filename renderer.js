@@ -137,6 +137,23 @@ function updateLanguage(lang) {
 
     updateLabelFor('language-select', t.labelLanguage);
 
+    // Update Section
+    const updateTitle = document.getElementById('update-title');
+    if (updateTitle) updateTitle.innerText = t.updateTitle;
+    const checkUpdateBtn = document.getElementById('check-update-btn');
+    if (checkUpdateBtn) checkUpdateBtn.innerText = t.btnCheckUpdate;
+    const restartUpdateBtn = document.getElementById('restart-update-btn');
+    if (restartUpdateBtn) restartUpdateBtn.innerText = t.btnRestart;
+
+    // Update Custom Select Option Labels (Flags are static)
+    // We need to map values because DOM doesn't have IDs for options easily.
+    // Or just leave them alone? Languages names are usually static in their own language?
+    // "English" is English. "ไทย" is Thai. 
+    // Usually language selector names should NOT change with locale.
+    // "English" should always be "English", not "Aannggkrit".
+    // So we DON'T translate the option texts.
+    // But we might need to translate the label "Language".
+
     // Tips
     document.querySelector('.tips-box h3').innerText = t.tipsTitle;
     const items = document.querySelectorAll('.tips-box ul li');
@@ -567,4 +584,74 @@ if (window.api) {
             if (current) loadSourceToForm(current);
         }
     });
+}
+
+// --- Update Logic ---
+
+const updateStatusText = document.getElementById('update-status-text');
+const updateProgress = document.getElementById('update-progress');
+const downloadProgressBar = document.getElementById('download-progress-bar');
+const restartUpdateBtn = document.getElementById('restart-update-btn');
+const checkUpdateBtn = document.getElementById('check-update-btn');
+
+if (checkUpdateBtn) {
+    checkUpdateBtn.addEventListener('click', () => {
+        if (window.api) {
+            window.api.send('check-for-update');
+            checkUpdateBtn.disabled = true;
+            updateStatusText.innerText = getTranslation('msgChecking');
+        }
+    });
+}
+
+if (restartUpdateBtn) {
+    restartUpdateBtn.addEventListener('click', () => {
+        if (window.api) {
+            window.api.send('quit-and-install');
+        }
+    });
+}
+
+if (window.api) {
+    window.api.on('update-message', (data) => {
+        // data: { state: string, message?: string, progress?: number }
+        const t = (key) => {
+             // get current language translation
+             const lang = globalSettings.language || 'en';
+             return translations[lang] ? (translations[lang][key] || translations['en'][key]) : translations['en'][key];
+        };
+
+        if (data.state === 'checking') {
+             updateStatusText.innerText = t('msgChecking');
+             checkUpdateBtn.disabled = true;
+             updateProgress.style.display = 'none';
+        } else if (data.state === 'update-available') {
+             updateStatusText.innerText = t('msgUpdateAvailable');
+             updateProgress.style.display = 'block';
+             downloadProgressBar.style.width = '0%';
+        } else if (data.state === 'update-not-available') {
+             updateStatusText.innerText = t('msgUpdateNotAvailable');
+             checkUpdateBtn.disabled = false;
+             updateProgress.style.display = 'none';
+        } else if (data.state === 'error') {
+             updateStatusText.innerText = t('msgUpdateError') + (data.message ? ': ' + data.message : '');
+             checkUpdateBtn.disabled = false;
+             updateProgress.style.display = 'none';
+        } else if (data.state === 'download-progress') {
+             if (data.progress !== undefined) {
+                 downloadProgressBar.style.width = data.progress + '%';
+                 updateStatusText.innerText = t('msgUpdateAvailable') + ' ' + Math.round(data.progress) + '%';
+             }
+        } else if (data.state === 'update-downloaded') {
+             updateStatusText.innerText = t('msgUpdateDownloaded');
+             updateProgress.style.display = 'none';
+             checkUpdateBtn.style.display = 'none';
+             restartUpdateBtn.style.display = 'inline-block';
+        }
+    });
+}
+
+function getTranslation(key) {
+    const lang = globalSettings.language || 'en';
+    return translations[lang] ? (translations[lang][key] || translations['en'][key]) : translations['en'][key];
 }

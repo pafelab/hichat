@@ -200,6 +200,18 @@
                 </div>
             </div>
 
+            <div class="form-group update-section" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 1.5rem;">
+                <label id="update-title">Updates</label>
+                <div class="update-controls">
+                    <button id="check-update-btn" class="btn-secondary">Check for Updates</button>
+                    <span id="update-status-text" class="status-text"></span>
+                </div>
+                <div id="update-progress" class="progress-bar-container" style="display: none;">
+                    <div class="progress-bar" id="download-progress-bar"></div>
+                </div>
+                <button id="restart-update-btn" class="btn-primary" style="display: none; margin-top: 1rem;">Restart & Install</button>
+            </div>
+
             <div class="tips-box">
                 <h3>💡 Tips</h3>
                 <ul>

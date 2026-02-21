@@ -505,6 +505,47 @@ function notifyUpdate() {
     ipcRenderer.send('sources-modified', sources);
 }
 
+function setupMenuDrag(container) {
+    const bar = container.querySelector('.menu-bar');
+    let startX, startY, startRect;
+
+    const onMouseDown = (e) => {
+        // Prevent drag if clicking on a button
+        if (e.target.closest('button')) return;
+
+        e.preventDefault();
+        startX = e.clientX;
+        startY = e.clientY;
+
+        // Get current visual position
+        startRect = container.getBoundingClientRect();
+
+        // Reset fixed positioning to absolute coordinates
+        container.style.bottom = 'auto';
+        container.style.transform = 'none';
+        container.style.left = `${startRect.left}px`;
+        container.style.top = `${startRect.top}px`;
+
+        const onMouseMove = (ev) => {
+            const dx = ev.clientX - startX;
+            const dy = ev.clientY - startY;
+
+            container.style.left = `${startRect.left + dx}px`;
+            container.style.top = `${startRect.top + dy}px`;
+        };
+
+        const onMouseUp = () => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    };
+
+    bar.addEventListener('mousedown', onMouseDown);
+}
+
 // --- Menu Logic ---
 
 // Reusing the style injection and menu creation logic from overlay-preload.js
@@ -626,6 +667,9 @@ function toggleMenu(show) {
 
             container.appendChild(bar);
             document.body.appendChild(container);
+
+            // Setup Drag
+            setupMenuDrag(container);
         }
 
         // Notify main to enable mouse events if they were disabled

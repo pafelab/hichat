@@ -49,7 +49,8 @@ function renderSources(updateContent = true) {
     const existingIds = existingWrappers.map(el => el.dataset.id);
     const newIds = new Set(sources.map(s => s.id));
 
-    // Remove deleted
+    // Map for reuse
+    const wrapperMap = new Map();
     existingWrappers.forEach(el => {
         if (!newIds.has(el.dataset.id)) {
             wrapperMap.delete(el.dataset.id);
@@ -148,11 +149,55 @@ function renderSources(updateContent = true) {
             title.style.maxWidth = '150px';
             header.appendChild(title);
 
+            // Zoom Slider (Mini)
+            const zoomContainer = document.createElement('div');
+            zoomContainer.style.display = 'flex';
+            zoomContainer.style.alignItems = 'center';
+            zoomContainer.style.marginLeft = 'auto'; // Push to right
+            zoomContainer.style.marginRight = '10px';
+            zoomContainer.title = 'Zoom';
+
+            const zoomIcon = document.createElement('span');
+            zoomIcon.innerText = '🔍';
+            zoomIcon.style.fontSize = '10px';
+            zoomIcon.style.marginRight = '4px';
+            zoomContainer.appendChild(zoomIcon);
+
+            const zoomSlider = document.createElement('input');
+            zoomSlider.type = 'range';
+            zoomSlider.min = '25';
+            zoomSlider.max = '300';
+            zoomSlider.value = (source.zoom !== undefined ? source.zoom * 100 : 100);
+            zoomSlider.style.width = '60px';
+            zoomSlider.style.height = '4px';
+
+            zoomSlider.addEventListener('mousedown', (e) => e.stopPropagation()); // Prevent drag
+            zoomSlider.addEventListener('input', (e) => {
+                const zoom = parseInt(e.target.value) / 100;
+                // Apply zoom
+                const wv = wrapper.querySelector('webview');
+                if (wv && typeof wv.setZoomFactor === 'function') {
+                    try { wv.setZoomFactor(zoom); } catch (e) { }
+                }
+
+                // Debounce update to main
+                if (source._zoomTimeout) clearTimeout(source._zoomTimeout);
+                source._zoomTimeout = setTimeout(() => {
+                    const s = sources.find(src => src.id === source.id);
+                    if (s) {
+                        s.zoom = zoom;
+                        notifyUpdate();
+                    }
+                }, 200);
+            });
+
+            zoomContainer.appendChild(zoomSlider);
+            header.appendChild(zoomContainer);
+
             // Opacity Slider (Mini)
             const opacityContainer = document.createElement('div');
             opacityContainer.style.display = 'flex';
             opacityContainer.style.alignItems = 'center';
-            opacityContainer.style.marginLeft = 'auto'; // Push to right
             opacityContainer.title = 'Opacity';
 
             const opacityIcon = document.createElement('span');
@@ -310,9 +355,10 @@ function setupDragEvents(wrapper, handle) {
         let rAF = null;
         let latestEv = null;
 
-        const performUpdate = () => {
-            if (!latestEv) return;
-            const ev = latestEv;
+        let isTicking = false;
+        let lastEvent = null;
+
+        const updatePosition = (ev) => {
             const dx = ev.clientX - startX;
             const dy = ev.clientY - startY;
 
@@ -333,9 +379,13 @@ function setupDragEvents(wrapper, handle) {
         };
 
         const onMouseMove = (ev) => {
-            latestEv = ev;
-            if (!rAF) {
-                rAF = requestAnimationFrame(performUpdate);
+            lastEvent = ev;
+            if (!isTicking) {
+                requestAnimationFrame(() => {
+                    updatePosition(lastEvent);
+                    isTicking = false;
+                });
+                isTicking = true;
             }
         };
 

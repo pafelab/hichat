@@ -878,3 +878,51 @@ footer {
     font-size: 0.9rem;
     color: var(--text-secondary);
 }
+
+/* Launch Tip */
+.launch-tip {
+    position: fixed;
+    top: 70%;
+    /* Approx 700px on 1080p screen */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(30, 30, 35, 0.95);
+    /* High contrast dark bg */
+    color: var(--text-primary);
+    padding: 1.5rem 2rem;
+    /* Larger padding for emphasis */
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--accent);
+    /* Thicker border */
+    text-align: center;
+    font-size: 1.1rem;
+    /* Larger font */
+    font-weight: 500;
+    z-index: 1000;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    /* Strong shadow */
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Bouncy pop-in */
+    backdrop-filter: blur(5px);
+}
+
+.launch-tip strong {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 1.2rem;
+    display: inline-block;
+    padding: 0 0.25rem;
+    text-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+@keyframes popIn {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -40%) scale(0.8);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}

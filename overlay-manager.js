@@ -6,6 +6,7 @@ let sources = [];
 let editMode = false;
 let menuOpen = false;
 let areSourcesHidden = false;
+const wrapperMap = new Map();
 
 const canvas = document.getElementById('overlay-canvas');
 
@@ -51,6 +52,7 @@ function renderSources(updateContent = true) {
     // Remove deleted
     existingWrappers.forEach(el => {
         if (!newIds.has(el.dataset.id)) {
+            wrapperMap.delete(el.dataset.id);
             el.remove();
         }
     });
@@ -63,6 +65,7 @@ function renderSources(updateContent = true) {
         if (!wrapper) {
             // Create New
             wrapper = document.createElement('div');
+            wrapperMap.set(source.id, wrapper);
             wrapper.className = 'source-wrapper';
             wrapper.dataset.id = source.id;
 
@@ -294,8 +297,7 @@ function setupDragEvents(wrapper, handle) {
     // User requested "add burger... drag position".
 
     const onMouseDown = (e) => {
-        if (!editMode) return; // Only allow drag in edit mode? Or always via handle?
-        // Typically handles are for edit mode. Let's stick to edit mode for safety unless requested otherwise.
+        if (!editMode) return;
 
         e.preventDefault();
         e.stopPropagation();
@@ -311,11 +313,6 @@ function setupDragEvents(wrapper, handle) {
         const performUpdate = () => {
             if (!latestEv) return;
             const ev = latestEv;
-
-        let isTicking = false;
-        let lastEvent = null;
-
-        const updatePosition = (ev) => {
             const dx = ev.clientX - startX;
             const dy = ev.clientY - startY;
 
@@ -342,17 +339,6 @@ function setupDragEvents(wrapper, handle) {
             }
         };
 
-        const onMouseMove = (ev) => {
-            lastEvent = ev;
-            if (!isTicking) {
-                requestAnimationFrame(() => {
-                    updatePosition(lastEvent);
-                    isTicking = false;
-                });
-                isTicking = true;
-            }
-        };
-
         const onMouseUp = () => {
             if (rAF) {
                 cancelAnimationFrame(rAF);
@@ -360,12 +346,6 @@ function setupDragEvents(wrapper, handle) {
             }
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
-
-            // Ensure final state is captured if a frame was pending
-            if (isTicking && lastEvent) {
-                updatePosition(lastEvent);
-            }
-
             // Notify Main to save
             notifyUpdate();
         };

@@ -1,4 +1,6 @@
 const { ipcRenderer } = require('electron');
+const path = require('path');
+const { pathToFileURL } = require('url');
 
 let sources = [];
 let editMode = false;
@@ -43,19 +45,23 @@ function renderSources(updateContent = true) {
 
     // existing wrappers
     const existingWrappers = Array.from(document.querySelectorAll('.source-wrapper'));
-    const existingIds = existingWrappers.map(el => el.dataset.id);
-    const newIds = sources.map(s => s.id);
+
+    // Create Map for O(1) access
+    const wrapperMap = new Map();
+    existingWrappers.forEach(el => wrapperMap.set(el.dataset.id, el));
+
+    const newIds = new Set(sources.map(s => s.id));
 
     // Remove deleted
     existingWrappers.forEach(el => {
-        if (!newIds.includes(el.dataset.id)) {
+        if (!newIds.has(el.dataset.id)) {
             el.remove();
         }
     });
 
     // Add or Update
     sources.forEach(source => {
-        let wrapper = document.querySelector(`.source-wrapper[data-id="${source.id}"]`);
+        let wrapper = wrapperMap.get(source.id);
         let webview;
 
         if (!wrapper) {
@@ -69,16 +75,30 @@ function renderSources(updateContent = true) {
             webview.src = source.url;
             webview.setAttribute('allowpopups', 'yes');
             webview.setAttribute('webpreferences', 'contextIsolation=no'); // Assuming we want some access, or strictly isolated?
+
+            // Set preload script for robust audio control
+            const preloadPath = path.join(__dirname, 'webview-audio-injector.js');
+            webview.setAttribute('preload', pathToFileURL(preloadPath).href);
+
             // Actually, for custom CSS we need to wait for dom-ready
 
             webview.addEventListener('dom-ready', () => {
-                if (source.css) {
-                    webview.insertCSS(source.css);
+                // Fetch current source state to ensure latest volume is applied
+                const currentSource = sources.find(s => s.id === source.id) || source;
+
+                if (currentSource.css) {
+                    webview.insertCSS(currentSource.css);
                 }
-                if (source.audio) {
-                    webview.setAudioMuted(source.audio.muted);
-                    // Volume injection could happen here
+                if (currentSource.audio) {
+                    webview.setAudioMuted(currentSource.audio.muted);
+                    // Send volume to preload script
+                    if (webview.send) {
+                        webview.send('set-volume', currentSource.audio.volume / 100);
+                    }
                 }
+                try {
+                    webview.setZoomFactor(parseFloat(source.zoom || 1.0));
+                } catch (e) { }
             });
 
             // Append
@@ -221,6 +241,13 @@ function renderSources(updateContent = true) {
         }
         wrapper.dataset.name = source.name || 'Source';
 
+        // Apply Zoom dynamically
+        if (webview && typeof webview.setZoomFactor === 'function') {
+            try {
+                webview.setZoomFactor(parseFloat(source.zoom || 1.0));
+            } catch (e) { }
+        }
+
         // Interactive Mode
         if (source.interact && !editMode) {
             wrapper.classList.add('interactive');
@@ -233,11 +260,13 @@ function renderSources(updateContent = true) {
         // Audio Update
         if (webview && source.audio) {
             webview.setAudioMuted(source.audio.muted);
-            // Volume hack
-            if (!source.audio.muted) {
-                webview.executeJavaScript(`
-                    document.querySelectorAll('video, audio').forEach(el => el.volume = ${source.audio.volume / 100});
-                 `).catch(() => { });
+            // Robust Volume Update via IPC
+            if (webview.send) {
+                try {
+                    webview.send('set-volume', source.audio.volume / 100);
+                } catch (e) {
+                    // Webview might not be ready yet, handled by dom-ready listener
+                }
             }
         }
 
@@ -287,6 +316,10 @@ function setupDragEvents(wrapper, handle) {
             if (!latestEv) return;
             const ev = latestEv;
 
+        let isTicking = false;
+        let lastEvent = null;
+
+        const updatePosition = (ev) => {
             const dx = ev.clientX - startX;
             const dy = ev.clientY - startY;
 
@@ -313,6 +346,17 @@ function setupDragEvents(wrapper, handle) {
             }
         };
 
+        const onMouseMove = (ev) => {
+            lastEvent = ev;
+            if (!isTicking) {
+                requestAnimationFrame(() => {
+                    updatePosition(lastEvent);
+                    isTicking = false;
+                });
+                isTicking = true;
+            }
+        };
+
         const onMouseUp = () => {
             if (rAF) {
                 cancelAnimationFrame(rAF);
@@ -320,6 +364,12 @@ function setupDragEvents(wrapper, handle) {
             }
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
+
+            // Ensure final state is captured if a frame was pending
+            if (isTicking && lastEvent) {
+                updatePosition(lastEvent);
+            }
+
             // Notify Main to save
             notifyUpdate();
         };

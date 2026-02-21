@@ -1,6 +1,11 @@
 const { app, BrowserWindow, ipcMain, Menu, MenuItem, screen, globalShortcut, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
+
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
 
 let configWindow;
 let overlayWindow;
@@ -29,6 +34,15 @@ async function saveConfig(data) {
     } catch (error) {
         console.error('Error saving config:', error);
     }
+}
+
+let saveTimeout;
+function debouncedSaveConfig(data) {
+    cachedConfig = data; // Update memory immediately
+    if (saveTimeout) clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+        saveConfig(data);
+    }, 1000);
 }
 
 function createConfigWindow() {
@@ -177,8 +191,80 @@ ipcMain.on('launch-overlay', (event, data) => {
     }
 });
 
+ipcMain.on('update-sources-realtime', (event, data) => {
+    // Save to disk (debounced)
+    debouncedSaveConfig(data);
+
+    // Forward to overlay
+    if (overlayWindow && !overlayWindow.isDestroyed()) {
+        // Update Content Protection if needed
+        if (data.settings && data.settings.hideFromObs !== undefined) {
+             overlayWindow.setContentProtection(data.settings.hideFromObs);
+        }
+        overlayWindow.webContents.send('update-sources', data.sources);
+    }
+});
+
 ipcMain.on('close-app', () => {
     app.quit();
+});
+
+// --- Auto Update Logic ---
+
+ipcMain.on('check-for-update', () => {
+    if (!app.isPackaged) {
+        // Dev mode simulation or error
+        // log.info('Check update requested in dev mode');
+        if (configWindow) {
+            configWindow.webContents.send('update-message', { state: 'checking' });
+            setTimeout(() => {
+                configWindow.webContents.send('update-message', { state: 'update-not-available' }); // Simulate no update in dev
+            }, 2000);
+        }
+        return;
+    }
+
+    // Check
+    autoUpdater.checkForUpdates();
+    if (configWindow) configWindow.webContents.send('update-message', { state: 'checking' });
+});
+
+ipcMain.on('quit-and-install', () => {
+    autoUpdater.quitAndInstall();
+});
+
+autoUpdater.on('update-available', (info) => {
+    log.info('Update available:', info);
+    if (configWindow && !configWindow.isDestroyed()) {
+        configWindow.webContents.send('update-message', { state: 'update-available' });
+    }
+});
+
+autoUpdater.on('update-not-available', (info) => {
+    log.info('Update not available:', info);
+    if (configWindow && !configWindow.isDestroyed()) {
+        configWindow.webContents.send('update-message', { state: 'update-not-available' });
+    }
+});
+
+autoUpdater.on('error', (err) => {
+    log.error('Update error:', err);
+    if (configWindow && !configWindow.isDestroyed()) {
+        configWindow.webContents.send('update-message', { state: 'error', message: err.message });
+    }
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+    if (configWindow && !configWindow.isDestroyed()) {
+        configWindow.webContents.send('update-message', { state: 'download-progress', progress: progressObj.percent });
+    }
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    log.info('Update downloaded');
+    if (configWindow && !configWindow.isDestroyed()) {
+        configWindow.webContents.send('update-message', { state: 'update-downloaded' });
+    }
 });
 
 // App Lifecycle

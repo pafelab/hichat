@@ -44,11 +44,11 @@ function renderSources(updateContent = true) {
     // existing wrappers
     const existingWrappers = Array.from(document.querySelectorAll('.source-wrapper'));
     const existingIds = existingWrappers.map(el => el.dataset.id);
-    const newIds = sources.map(s => s.id);
+    const newIds = new Set(sources.map(s => s.id));
 
     // Remove deleted
     existingWrappers.forEach(el => {
-        if (!newIds.includes(el.dataset.id)) {
+        if (!newIds.has(el.dataset.id)) {
             el.remove();
         }
     });

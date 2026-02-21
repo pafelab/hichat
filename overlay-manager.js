@@ -45,11 +45,7 @@ function renderSources(updateContent = true) {
 
     // existing wrappers
     const existingWrappers = Array.from(document.querySelectorAll('.source-wrapper'));
-
-    // Create Map for O(1) access
-    const wrapperMap = new Map();
-    existingWrappers.forEach(el => wrapperMap.set(el.dataset.id, el));
-
+    const existingIds = existingWrappers.map(el => el.dataset.id);
     const newIds = new Set(sources.map(s => s.id));
 
     // Remove deleted

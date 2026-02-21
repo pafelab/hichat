@@ -522,9 +522,13 @@ launchBtn.addEventListener('click', () => {
     if (launchTipEl) {
         launchTipEl.innerHTML = tipMsg;
         launchTipEl.style.display = 'block';
-        setTimeout(() => {
-            launchTipEl.style.display = 'none';
-        }, 5000);
+
+        // Reset position for new show
+        launchTipEl.style.left = '50%';
+        launchTipEl.style.top = '70%';
+        launchTipEl.style.transform = 'translate(-50%, -50%)';
+
+        startTipTimer();
     }
 
     setStatus('Overlay launched / updated!');
@@ -670,4 +674,59 @@ if (window.api) {
 function getTranslation(key) {
     const lang = globalSettings.language || 'en';
     return translations[lang] ? (translations[lang][key] || translations['en'][key]) : translations['en'][key];
+}
+
+// --- Launch Tip Drag Logic ---
+let tipTimeout;
+let isDraggingTip = false;
+let dragOffset = { x: 0, y: 0 };
+
+function startTipTimer() {
+    if (tipTimeout) clearTimeout(tipTimeout);
+    tipTimeout = setTimeout(() => {
+        if (launchTipEl) launchTipEl.style.display = 'none';
+    }, 5000);
+}
+
+if (launchTipEl) {
+    launchTipEl.addEventListener('mousedown', (e) => {
+        isDraggingTip = true;
+
+        // Clear timer so it doesn't vanish while dragging
+        if (tipTimeout) clearTimeout(tipTimeout);
+
+        // Calculate offset: mouse position relative to element center
+        // Since we use translate(-50%, -50%), the visual center is at left/top.
+        // But actual DOM rect vs style is tricky with transform.
+        // Let's use getBoundingClientRect.
+        const rect = launchTipEl.getBoundingClientRect();
+        dragOffset.x = e.clientX - (rect.left + rect.width / 2);
+        dragOffset.y = e.clientY - (rect.top + rect.height / 2);
+
+        // Change cursor
+        launchTipEl.style.cursor = 'grabbing';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDraggingTip) return;
+
+        // Update position
+        // We set left/top to mouse position minus offset
+        // Because of translate(-50%, -50%), setting left/top to X/Y centers the element at X/Y.
+        // So we want the center to be at mouse - offset.
+        const newX = e.clientX - dragOffset.x;
+        const newY = e.clientY - dragOffset.y;
+
+        launchTipEl.style.left = `${newX}px`;
+        launchTipEl.style.top = `${newY}px`;
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isDraggingTip) {
+            isDraggingTip = false;
+            launchTipEl.style.cursor = 'move';
+            // Restart timer
+            startTipTimer();
+        }
+    });
 }

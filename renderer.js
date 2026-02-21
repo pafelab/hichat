@@ -54,7 +54,6 @@ function updateLanguage(lang) {
     const t = translations[lang];
 
     document.title = t.appTitle;
-    document.querySelector('h1').innerText = "art " + t.appTitle; // Keeping the "art" prefix if intended? Or maybe emoji. Original was "🎨 HiChat Overlay".
     document.querySelector('h1').innerHTML = "🎨 " + t.appTitle;
 
     document.querySelector('[data-tab="sources"]').innerText = t.tabSources;

@@ -36,6 +36,15 @@ async function saveConfig(data) {
     }
 }
 
+let saveTimeout;
+function debouncedSaveConfig(data) {
+    cachedConfig = data; // Update memory immediately
+    if (saveTimeout) clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+        saveConfig(data);
+    }, 1000);
+}
+
 function createConfigWindow() {
     if (configWindow && !configWindow.isDestroyed()) {
         configWindow.focus();
@@ -179,6 +188,20 @@ ipcMain.on('launch-overlay', (event, data) => {
         });
     } else {
         win.webContents.send('update-sources', data.sources);
+    }
+});
+
+ipcMain.on('update-sources-realtime', (event, data) => {
+    // Save to disk (debounced)
+    debouncedSaveConfig(data);
+
+    // Forward to overlay
+    if (overlayWindow && !overlayWindow.isDestroyed()) {
+        // Update Content Protection if needed
+        if (data.settings && data.settings.hideFromObs !== undefined) {
+             overlayWindow.setContentProtection(data.settings.hideFromObs);
+        }
+        overlayWindow.webContents.send('update-sources', data.sources);
     }
 });
 

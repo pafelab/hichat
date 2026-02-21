@@ -28,6 +28,7 @@ const propInputs = {
     muted: document.getElementById('prop-muted'),
     volume: document.getElementById('prop-volume'),
     opacity: document.getElementById('prop-opacity'),
+    zoom: document.getElementById('prop-zoom'),
     interact: document.getElementById('prop-interact'),
     css: document.getElementById('prop-css')
 };
@@ -35,12 +36,10 @@ const propInputs = {
 const deleteSourceBtn = document.getElementById('delete-source-btn');
 
 // Global Settings Inputs
-// Global Settings Inputs
 const settingsInputs = {
     menuShortcut: document.getElementById('menu-shortcut'),
     toggleShortcut: document.getElementById('toggle-shortcut'),
     hideFromObs: document.getElementById('hide-from-obs'),
-    // language: document.getElementById('language-select') // Removed standard select
 };
 
 const customSelect = document.querySelector('.custom-select');
@@ -48,12 +47,27 @@ const customOptions = document.querySelectorAll('.custom-option');
 const currentLangText = document.getElementById('current-lang-text');
 const currentFlag = document.getElementById('current-flag');
 
+// --- Helper: Real-time Update ---
+let notifyTimeout;
+function notifyMain() {
+    if (notifyTimeout) clearTimeout(notifyTimeout);
+    notifyTimeout = setTimeout(() => {
+        if (window.api) {
+            window.api.send('update-sources-realtime', {
+                sources,
+                settings: globalSettings
+            });
+        }
+    }, 200);
+}
+
 // --- Localization ---
 function updateLanguage(lang) {
     if (!translations[lang]) lang = 'en';
     const t = translations[lang];
 
     document.title = t.appTitle;
+    document.querySelector('h1').innerText = "art " + t.appTitle; // Keeping existing logic
     document.querySelector('h1').innerHTML = "🎨 " + t.appTitle;
 
     document.querySelector('[data-tab="sources"]').innerText = t.tabSources;
@@ -61,20 +75,10 @@ function updateLanguage(lang) {
 
     document.querySelector('.source-list-panel .panel-header h2').innerText = t.panelSources;
     document.getElementById('add-source-btn').innerText = t.btnAdd;
-    document.getElementById('add-source-btn').title = t.btnAdd; // Tooltip
-    // Move buttons are icons, maybe title?
+    document.getElementById('add-source-btn').title = t.btnAdd;
 
     document.querySelector('.properties-panel .panel-header h2').innerText = t.panelProperties;
     document.getElementById('no-selection-msg').innerText = t.msgNoSelection;
-
-    // Labels
-    const labels = document.querySelectorAll('label');
-    labels.forEach(l => {
-        // This is tricky without IDs on labels. 
-        // Best effort: match by structure or add IDs to HTML.
-        // Let's rely on specific updates or better, structure map.
-        // Actually, let's update specific elements by querySelector.
-    });
 
     // Explicit updates
     setLabelText('prop-name', t.labelName);
@@ -83,26 +87,14 @@ function updateLanguage(lang) {
     setLabelText('prop-height', t.labelHeight);
     setLabelText('prop-x', t.labelX);
     setLabelText('prop-y', t.labelY);
-    // Audio group is complex.
-    // Mute/Interact toggle text is next to checkbox.
 
     // Mute
     const muteLabel = document.querySelector('#prop-muted').parentNode;
     if (muteLabel) muteLabel.lastChild.textContent = " " + t.labelMute;
 
     // Interact
-    const interactLabel = document.querySelector('#prop-interact').parentNode.nextElementSibling;
-    if (interactLabel && interactLabel.tagName === 'SPAN') interactLabel.innerText = t.labelInteractive; // Structure check: label -> input, div, span.
-    // Wait, HTML structure: <label class="toggle-wrapper"> <input> <div> <span>Text</span> </label>
     const interactSpan = document.querySelector('#prop-interact ~ span');
     if (interactSpan) interactSpan.innerText = t.labelInteractive;
-
-    // CSS
-    const cssLabel = document.querySelector('#prop-css').previousElementSibling.previousElementSibling; // Button group is in between
-    // Actually label is 'Custom CSS'.
-    // Let's create a helper to find label by 'for' attribute if possible, but inputs have IDs.
-    // HTML: <label>Name</label><input id="prop-name">
-    // So label is previousElementSibling of input? No, they are in .form-group together.
 
     updateLabelFor('prop-name', t.labelName);
     updateLabelFor('prop-url', t.labelUrl);
@@ -111,16 +103,20 @@ function updateLanguage(lang) {
     updateLabelFor('prop-x', t.labelX);
     updateLabelFor('prop-y', t.labelY);
 
-    // Audio label is first child of form-group
+    // Audio label
     const audioGroup = document.querySelector('#prop-volume').closest('.form-group');
     if (audioGroup) audioGroup.querySelector('label').innerText = t.labelAudio;
 
     // Opacity
-    // <label>Opacity: <span...
-    const opacityLabel = document.querySelector('#prop-opacity').previousElementSibling; // label
+    const opacityLabel = document.querySelector('#prop-opacity').previousElementSibling;
     if (opacityLabel) {
-        const span = opacityLabel.querySelector('span'); // Save current value
         opacityLabel.firstChild.textContent = t.labelOpacity + ": ";
+    }
+
+    // Zoom
+    const zoomLabel = document.querySelector('#prop-zoom').previousElementSibling;
+    if (zoomLabel) {
+        zoomLabel.firstChild.textContent = t.labelZoom + ": ";
     }
 
     // Custom CSS
@@ -175,17 +171,11 @@ function updateLanguage(lang) {
     if (closeBtn && t.btnClose) {
         closeBtn.innerText = "❌ " + t.btnClose;
     }
-
-    // Re-render source list (for delete button title if needed, but it's icon)
-    // No text in list items besides name.
 }
 
 function updateLabelFor(inputId, text) {
-    // Assumes <div class="form-group"><label>Text</label><input id="inputId"></div>
-    // OR <label for="inputId">
     let label = document.querySelector(`label[for="${inputId}"]`);
     if (!label) {
-        // Fallback: previous sibling of input, or first child of parent
         const input = document.getElementById(inputId);
         if (input) {
             const parent = input.closest('.form-group');
@@ -229,12 +219,14 @@ function addSource() {
         zIndex: sources.length + 1,
         audio: { muted: false, volume: 100 },
         opacity: 1.0,
+        zoom: 1.0,
         interact: false,
         css: ''
     };
     sources.push(newSource);
     renderSourceList();
     selectSource(newSource.id);
+    notifyMain();
 }
 
 function removeSource(id) {
@@ -244,6 +236,7 @@ function removeSource(id) {
             selectSource(null);
         }
         renderSourceList();
+        notifyMain();
     }
 }
 
@@ -264,6 +257,7 @@ function moveSource(direction) {
     sources.forEach((s, i) => s.zIndex = i + 1);
 
     renderSourceList();
+    notifyMain();
 }
 
 function selectSource(id) {
@@ -294,18 +288,16 @@ function loadSourceToForm(source) {
     propInputs.volume.value = source.audio?.volume || 100;
     document.getElementById('prop-volume-val').innerText = (source.audio?.volume || 100) + '%';
 
-    // Opacity
     const opacity = source.opacity !== undefined ? source.opacity : 1.0;
     propInputs.opacity.value = Math.round(opacity * 100);
     document.getElementById('prop-opacity-val').innerText = Math.round(opacity * 100) + '%';
 
+    const zoom = source.zoom !== undefined ? source.zoom : 1.0;
+    propInputs.zoom.value = zoom;
+    document.getElementById('prop-zoom-val').innerText = zoom.toFixed(1);
+
     propInputs.interact.checked = source.interact || false;
     propInputs.css.value = source.css || '';
-
-    // Trigger highlight update if needed
-    if (document.getElementById('css-highlight')) {
-        // highlightCSS(source.css || ''); // If syntax highlighter exists
-    }
 }
 
 function updateSelectedSourceFromForm() {
@@ -327,6 +319,7 @@ function updateSelectedSourceFromForm() {
     source.audio.volume = parseInt(propInputs.volume.value);
 
     source.opacity = parseInt(propInputs.opacity.value) / 100;
+    source.zoom = parseFloat(propInputs.zoom.value);
 
     // Update list name if changed
     const item = document.querySelector(`.source-item[data-id="${selectedSourceId}"] .source-name`);
@@ -348,7 +341,6 @@ function renderSourceList() {
             </div>
         `;
 
-        // Stop propagation for delete
         const delBtn = li.querySelector('.delete-btn');
         delBtn.onclick = (e) => {
             e.stopPropagation();
@@ -383,6 +375,10 @@ Object.values(propInputs).forEach(input => {
         if (input === propInputs.opacity) {
             document.getElementById('prop-opacity-val').innerText = input.value + '%';
         }
+        if (input === propInputs.zoom) {
+            document.getElementById('prop-zoom-val').innerText = parseFloat(input.value).toFixed(1);
+        }
+        notifyMain();
     });
 });
 
@@ -390,54 +386,51 @@ Object.values(propInputs).forEach(input => {
 if (settingsInputs.menuShortcut) {
     settingsInputs.menuShortcut.addEventListener('input', (e) => {
         globalSettings.menuShortcut = e.target.value;
+        notifyMain();
     });
 }
 if (settingsInputs.hideFromObs) {
     settingsInputs.hideFromObs.addEventListener('change', (e) => {
         globalSettings.hideFromObs = e.target.checked;
+        notifyMain();
     });
 }
 if (settingsInputs.toggleShortcut) {
     settingsInputs.toggleShortcut.addEventListener('input', (e) => {
         globalSettings.toggleShortcut = e.target.value;
+        notifyMain();
     });
 }
 // Language Custom Select Logic
 if (customSelect) {
     const trigger = customSelect.querySelector('.custom-select__trigger');
 
-    // Toggle
     trigger.addEventListener('click', () => {
         customSelect.classList.toggle('open');
     });
 
-    // Close when clicking outside
     document.addEventListener('click', (e) => {
         if (!customSelect.contains(e.target)) {
             customSelect.classList.remove('open');
         }
     });
 
-    // Options Click
     customOptions.forEach(option => {
         option.addEventListener('click', () => {
             const value = option.getAttribute('data-value');
             const flag = option.getAttribute('data-flag');
-            const text = option.innerText.trim(); // or content excluding img
+            const text = option.innerText.trim();
 
-            // Update Global Settings
             globalSettings.language = value;
             updateLanguage(value);
+            notifyMain();
 
-            // Update UI
             currentLangText.innerText = text;
             currentFlag.src = flag;
 
-            // Highlight selected
             customOptions.forEach(opt => opt.classList.remove('selected'));
             option.classList.add('selected');
 
-            // Close
             customSelect.classList.remove('open');
         });
     });
@@ -480,6 +473,7 @@ body { background-color: transparent !important; }
             if (selectedSourceId) {
                 propInputs.css.value = PRESETS[key];
                 updateSelectedSourceFromForm();
+                notifyMain();
             }
         });
     }
@@ -492,7 +486,7 @@ const tabContents = document.querySelectorAll('.tab-content');
 tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         tabBtns.forEach(b => b.classList.remove('active'));
-        tabContents.forEach(c => c.classList.remove('active')); // use class instead of style display for css animation
+        tabContents.forEach(c => c.classList.remove('active'));
 
         btn.classList.add('active');
         const targetId = btn.getAttribute('data-tab');
@@ -510,7 +504,6 @@ launchBtn.addEventListener('click', () => {
     launchBtn.disabled = true;
     launchBtn.innerText = '🚀 Launching...';
 
-    // Send to Main
     if (window.api) {
         window.api.send('launch-overlay', {
             sources,
@@ -548,7 +541,6 @@ if (window.api) {
             if (settingsInputs.hideFromObs) settingsInputs.hideFromObs.checked = globalSettings.hideFromObs || false;
 
             if (globalSettings.language) {
-                // init custom select
                 const lang = globalSettings.language;
                 const option = document.querySelector(`.custom-option[data-value="${lang}"]`);
                 if (option) {
@@ -558,14 +550,11 @@ if (window.api) {
                     option.classList.add('selected');
                 }
             }
-            // Apply Language
             updateLanguage(globalSettings.language || 'en');
         }
 
-        // Legacy Config Migration (if needed)
-        // If sources is empty but we have 'url' in data, migrate it.
         if ((!sources || sources.length === 0) && data.url) {
-            addSource(); // Add default
+            addSource();
             const s = sources[0];
             s.name = 'Legacy Chat';
             s.url = data.url;
@@ -575,14 +564,11 @@ if (window.api) {
             s.width = data.width;
             s.height = data.height;
             renderSourceList();
+            notifyMain();
         }
     });
 
     window.api.on('sources-modified', (newSources) => {
-        // Update local state from Overlay changes (drag/resize)
-        // We merge carefully to avoid overwriting current form edits if possible
-        // But for simplicity, we just update position/size
-
         newSources.forEach(ns => {
             const local = sources.find(s => s.id === ns.id);
             if (local) {
@@ -593,7 +579,6 @@ if (window.api) {
             }
         });
 
-        // Refresh form if open
         if (selectedSourceId) {
             const current = sources.find(s => s.id === selectedSourceId);
             if (current) loadSourceToForm(current);

@@ -53,8 +53,9 @@ function renderSources(updateContent = true) {
     const wrapperMap = new Map();
     existingWrappers.forEach(el => {
         if (!newIds.has(el.dataset.id)) {
-            wrapperMap.delete(el.dataset.id);
             el.remove();
+        } else {
+            wrapperMap.set(el.dataset.id, el);
         }
     });
 

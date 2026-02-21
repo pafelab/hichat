@@ -1,11 +1,20 @@
 const { app, BrowserWindow, ipcMain, Menu, MenuItem, screen, globalShortcut, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = 'info';
+let autoUpdater;
+try {
+    ({ autoUpdater } = require('electron-updater'));
+    autoUpdater.logger = log;
+    autoUpdater.logger.transports.file.level = 'info';
+} catch (e) {
+    console.warn('Failed to load electron-updater. Auto-updates will be disabled.');
+    const EventEmitter = require('events');
+    autoUpdater = new EventEmitter();
+    autoUpdater.checkForUpdates = () => Promise.resolve(null);
+    autoUpdater.quitAndInstall = () => {};
+}
 
 let configWindow;
 let overlayWindow;

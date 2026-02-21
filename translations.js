@@ -46,7 +46,8 @@ const translations = {
         "msgUpdateError": "Error checking for updates.",
         "msgUpdateDownloaded": "Update downloaded. Restart to install.",
         "btnRestart": "Restart & Install",
-        "msgChecking": "Checking for updates..."
+        "msgChecking": "Checking for updates...",
+        "msgLaunchTip": "Tip: Press <strong>{menuKey}</strong> to manage overlay, <strong>{toggleKey}</strong> to hide."
     },
     "th": {
         "appTitle": "HiChat โอเวอร์เลย์",
@@ -95,7 +96,8 @@ const translations = {
         "msgUpdateError": "เกิดข้อผิดพลาดในการตรวจสอบ",
         "msgUpdateDownloaded": "ดาวน์โหลดเรียบร้อย รีสตาร์ทเพื่อติดตั้ง",
         "btnRestart": "รีสตาร์ทและติดตั้ง",
-        "msgChecking": "กำลังตรวจสอบอัปเดต..."
+        "msgChecking": "กำลังตรวจสอบอัปเดต...",
+        "msgLaunchTip": "เคล็ดลับ: กดปุ่ม <strong>{menuKey}</strong> เพื่อจัดการ overlay และกด <strong>{toggleKey}</strong> สำหรับการซ่อน overlay"
     },
     "zh": {
         "appTitle": "HiChat 覆盖层",

@@ -16,6 +16,7 @@ const noSelectionMsg = document.getElementById('no-selection-msg');
 const launchBtn = document.getElementById('launch');
 const closeBtn = document.getElementById('close-app');
 const statusEl = document.getElementById('status');
+const launchTipEl = document.getElementById('launch-tip');
 
 // Property Inputs
 const propInputs = {
@@ -509,6 +510,21 @@ launchBtn.addEventListener('click', () => {
             sources,
             settings: globalSettings
         });
+    }
+
+    // Show Launch Tip
+    const menuKey = globalSettings.menuShortcut || 'Shift+F1';
+    const toggleKey = globalSettings.toggleShortcut || 'Shift+F2';
+    const tipMsg = getTranslation('msgLaunchTip')
+        .replace('{menuKey}', menuKey)
+        .replace('{toggleKey}', toggleKey);
+
+    if (launchTipEl) {
+        launchTipEl.innerHTML = tipMsg;
+        launchTipEl.style.display = 'block';
+        setTimeout(() => {
+            launchTipEl.style.display = 'none';
+        }, 5000);
     }
 
     setStatus('Overlay launched / updated!');

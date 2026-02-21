@@ -18,6 +18,7 @@ const translations = {
         "labelAudio": "Audio",
         "labelMute": "Mute",
         "labelOpacity": "Opacity",
+        "labelZoom": "Zoom",
         "labelInteractive": "Interactive (Clickable)",
         "labelCustomCss": "Custom CSS",
         "labelMenuShortcut": "Menu Shortcut",
@@ -36,7 +37,7 @@ const translations = {
         "statusLaunched": "Overlay launched / updated!",
         "errorAddSource": "Please add at least one source.",
         "confirmDelete": "Are you sure you want to delete this source?",
-        "btnDelete": "🗑️ Delete Source"
+        "btnDelete": "🗑️ Delete Source",
         "btnClose": "Close Program"
     },
     "th": {
@@ -58,6 +59,7 @@ const translations = {
         "labelAudio": "เสียง",
         "labelMute": "ปิดเสียง",
         "labelOpacity": "ความโปร่งใส",
+        "labelZoom": "ซูม (Zoom)",
         "labelInteractive": "คลิกได้ (Interactive)",
         "labelCustomCss": "CSS เพิ่มเติม",
         "labelMenuShortcut": "ปุ่มลัดเมนู",
@@ -76,7 +78,7 @@ const translations = {
         "statusLaunched": "เริ่มทำงาน / อัปเดตเรียบร้อย!",
         "errorAddSource": "กรุณาเพิ่มจออย่างน้อย 1 จอ",
         "confirmDelete": "คุณแน่ใจหรือไม่ที่จะลบจอนี้?",
-        "btnDelete": "🗑️ ลบจอ"
+        "btnDelete": "🗑️ ลบจอ",
         "btnClose": "ปิดโปรแกรม"
     },
     "zh": {
@@ -98,6 +100,7 @@ const translations = {
         "labelAudio": "音频",
         "labelMute": "静音",
         "labelOpacity": "不透明度",
+        "labelZoom": "缩放 (Zoom)",
         "labelInteractive": "可交互 (点击)",
         "labelCustomCss": "自定义 CSS",
         "labelMenuShortcut": "菜单快捷键",
@@ -116,7 +119,7 @@ const translations = {
         "statusLaunched": "覆盖层已启动/更新！",
         "errorAddSource": "请至少添加一个来源。",
         "confirmDelete": "您确定要删除此来源吗？",
-        "btnDelete": "🗑️ 删除来源"
+        "btnDelete": "🗑️ 删除来源",
         "btnClose": "关闭程序"
     },
     "ja": {
@@ -138,6 +141,7 @@ const translations = {
         "labelAudio": "オーディオ",
         "labelMute": "ミュート",
         "labelOpacity": "不透明度",
+        "labelZoom": "ズーム (Zoom)",
         "labelInteractive": "インタラクティブ (クリック可能)",
         "labelCustomCss": "カスタム CSS",
         "labelMenuShortcut": "メニューショートカット",
@@ -156,7 +160,7 @@ const translations = {
         "statusLaunched": "オーバーレイを起動/更新しました！",
         "errorAddSource": "少なくとも1つのソースを追加してください。",
         "confirmDelete": "このソースを削除してもよろしいですか？",
-        "btnDelete": "🗑️ ソースを削除"
+        "btnDelete": "🗑️ ソースを削除",
         "btnClose": "プログラムを終了"
     },
     "de": {
@@ -178,6 +182,7 @@ const translations = {
         "labelAudio": "Audio",
         "labelMute": "Stummschalten",
         "labelOpacity": "Deckkraft",
+        "labelZoom": "Zoom",
         "labelInteractive": "Interaktiv (Klickbar)",
         "labelCustomCss": "Benutzerdefiniertes CSS",
         "labelMenuShortcut": "Menü-Abkürzung",
@@ -196,7 +201,7 @@ const translations = {
         "statusLaunched": "Overlay gestartet / aktualisiert!",
         "errorAddSource": "Bitte fügen Sie mindestens eine Quelle hinzu.",
         "confirmDelete": "Sind Sie sicher, dass Sie diese Quelle löschen möchten?",
-        "btnDelete": "🗑️ Quelle löschen"
+        "btnDelete": "🗑️ Quelle löschen",
         "btnClose": "Programm schließen"
     },
     "it": {
@@ -218,6 +223,7 @@ const translations = {
         "labelAudio": "Audio",
         "labelMute": "Muto",
         "labelOpacity": "Opacità",
+        "labelZoom": "Zoom",
         "labelInteractive": "Interattivo (Cliccabile)",
         "labelCustomCss": "CSS Personalizzato",
         "labelMenuShortcut": "Scorciatoia Menu",
@@ -236,7 +242,7 @@ const translations = {
         "statusLaunched": "Overlay avviato / aggiornato!",
         "errorAddSource": "Aggiungi almeno una sorgente.",
         "confirmDelete": "Sei sicuro di voler eliminare questa sorgente?",
-        "btnDelete": "🗑️ Elimina Sorgente"
+        "btnDelete": "🗑️ Elimina Sorgente",
         "btnClose": "Chiudi programma"
     },
     "es": {
@@ -258,6 +264,7 @@ const translations = {
         "labelAudio": "Audio",
         "labelMute": "Silenciar",
         "labelOpacity": "Opacidad",
+        "labelZoom": "Zoom",
         "labelInteractive": "Interactivo (Clickeable)",
         "labelCustomCss": "CSS Personalizado",
         "labelMenuShortcut": "Atajo de Menú",
@@ -276,7 +283,7 @@ const translations = {
         "statusLaunched": "¡Overlay lanzado / actualizado!",
         "errorAddSource": "Por favor, agrega al menos una fuente.",
         "confirmDelete": "¿Estás seguro de que deseas eliminar esta fuente?",
-        "btnDelete": "🗑️ Eliminar Fuente"
+        "btnDelete": "🗑️ Eliminar Fuente",
         "btnClose": "Cerrar programa"
     },
     "id": {
@@ -298,6 +305,7 @@ const translations = {
         "labelAudio": "Audio",
         "labelMute": "Bisu",
         "labelOpacity": "Opasitas",
+        "labelZoom": "Zoom",
         "labelInteractive": "Interaktif (Dapat Diklik)",
         "labelCustomCss": "CSS Kustom",
         "labelMenuShortcut": "Pintasan Menu",
@@ -316,7 +324,7 @@ const translations = {
         "statusLaunched": "Overlay diluncurkan / diperbarui!",
         "errorAddSource": "Harap tambahkan setidaknya satu sumber.",
         "confirmDelete": "Apakah Anda yakin ingin menghapus sumber ini?",
-        "btnDelete": "🗑️ Hapus Sumber"
+        "btnDelete": "🗑️ Hapus Sumber",
         "btnClose": "Tutup Program"
     }
 };

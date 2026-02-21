@@ -79,6 +79,9 @@ function renderSources(updateContent = true) {
                     webview.setAudioMuted(source.audio.muted);
                     // Volume injection could happen here
                 }
+                try {
+                    webview.setZoomFactor(parseFloat(source.zoom || 1.0));
+                } catch (e) { }
             });
 
             // Append
@@ -220,6 +223,13 @@ function renderSources(updateContent = true) {
             wrapper.style.opacity = source.opacity;
         }
         wrapper.dataset.name = source.name || 'Source';
+
+        // Apply Zoom dynamically
+        if (webview && typeof webview.setZoomFactor === 'function') {
+            try {
+                webview.setZoomFactor(parseFloat(source.zoom || 1.0));
+            } catch (e) { }
+        }
 
         // Interactive Mode
         if (source.interact && !editMode) {

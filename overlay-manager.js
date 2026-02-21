@@ -309,6 +309,13 @@ function setupDragEvents(wrapper, handle) {
         startLeft = parseInt(wrapper.style.left || 0);
         startTop = parseInt(wrapper.style.top || 0);
 
+        let rAF = null;
+        let latestEv = null;
+
+        const performUpdate = () => {
+            if (!latestEv) return;
+            const ev = latestEv;
+
         let isTicking = false;
         let lastEvent = null;
 
@@ -329,6 +336,14 @@ function setupDragEvents(wrapper, handle) {
                 source.x = newX;
                 source.y = newY;
             }
+            rAF = null;
+        };
+
+        const onMouseMove = (ev) => {
+            latestEv = ev;
+            if (!rAF) {
+                rAF = requestAnimationFrame(performUpdate);
+            }
         };
 
         const onMouseMove = (ev) => {
@@ -343,6 +358,10 @@ function setupDragEvents(wrapper, handle) {
         };
 
         const onMouseUp = () => {
+            if (rAF) {
+                cancelAnimationFrame(rAF);
+                rAF = null;
+            }
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
 
@@ -388,7 +407,13 @@ function setupResizeEvents(handle, wrapper) {
         const startLeft = parseInt(wrapper.style.left || 0);
         const startTop = parseInt(wrapper.style.top || 0);
 
-        const onMouseMove = (ev) => {
+        let rAF = null;
+        let latestEv = null;
+
+        const performUpdate = () => {
+            if (!latestEv) return;
+            const ev = latestEv;
+
             const dx = ev.clientX - startX;
             const dy = ev.clientY - startY;
 
@@ -425,9 +450,21 @@ function setupResizeEvents(handle, wrapper) {
                 source.x = newX;
                 source.y = newY;
             }
+            rAF = null;
+        };
+
+        const onMouseMove = (ev) => {
+            latestEv = ev;
+            if (!rAF) {
+                rAF = requestAnimationFrame(performUpdate);
+            }
         };
 
         const onMouseUp = () => {
+            if (rAF) {
+                cancelAnimationFrame(rAF);
+                rAF = null;
+            }
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
             notifyUpdate();

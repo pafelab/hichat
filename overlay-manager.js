@@ -43,19 +43,23 @@ function renderSources(updateContent = true) {
 
     // existing wrappers
     const existingWrappers = Array.from(document.querySelectorAll('.source-wrapper'));
-    const existingIds = existingWrappers.map(el => el.dataset.id);
-    const newIds = sources.map(s => s.id);
+
+    // Create Map for O(1) access
+    const wrapperMap = new Map();
+    existingWrappers.forEach(el => wrapperMap.set(el.dataset.id, el));
+
+    const newIds = new Set(sources.map(s => s.id));
 
     // Remove deleted
     existingWrappers.forEach(el => {
-        if (!newIds.includes(el.dataset.id)) {
+        if (!newIds.has(el.dataset.id)) {
             el.remove();
         }
     });
 
     // Add or Update
     sources.forEach(source => {
-        let wrapper = document.querySelector(`.source-wrapper[data-id="${source.id}"]`);
+        let wrapper = wrapperMap.get(source.id);
         let webview;
 
         if (!wrapper) {

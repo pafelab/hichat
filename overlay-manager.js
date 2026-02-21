@@ -280,7 +280,10 @@ function setupDragEvents(wrapper, handle) {
         startLeft = parseInt(wrapper.style.left || 0);
         startTop = parseInt(wrapper.style.top || 0);
 
-        const onMouseMove = (ev) => {
+        let isTicking = false;
+        let lastEvent = null;
+
+        const updatePosition = (ev) => {
             const dx = ev.clientX - startX;
             const dy = ev.clientY - startY;
 
@@ -299,9 +302,26 @@ function setupDragEvents(wrapper, handle) {
             }
         };
 
+        const onMouseMove = (ev) => {
+            lastEvent = ev;
+            if (!isTicking) {
+                requestAnimationFrame(() => {
+                    updatePosition(lastEvent);
+                    isTicking = false;
+                });
+                isTicking = true;
+            }
+        };
+
         const onMouseUp = () => {
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
+
+            // Ensure final state is captured if a frame was pending
+            if (isTicking && lastEvent) {
+                updatePosition(lastEvent);
+            }
+
             // Notify Main to save
             notifyUpdate();
         };

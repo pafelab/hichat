@@ -80,7 +80,8 @@ function renderSources(updateContent = true) {
             webview = document.createElement('webview');
             webview.src = source.url;
             webview.setAttribute('allowpopups', 'yes');
-            webview.setAttribute('webpreferences', 'contextIsolation=no'); // Assuming we want some access, or strictly isolated?
+            // Disable background throttling for each webview to ensure rendering in transparent window
+            webview.setAttribute('webpreferences', 'contextIsolation=no, backgroundThrottling=no');
             webview.setAttribute('partition', 'persist:source-' + source.id);
 
             // Set preload script for robust audio control

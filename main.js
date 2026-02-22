@@ -281,6 +281,12 @@ autoUpdater.on('update-downloaded', (info) => {
 
 // App Lifecycle
 
+// Force renderer to stay active even when backgrounded/occluded
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('disable-background-timer-throttling');
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
+app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
+
 function configureSession(sess) {
     sess.webRequest.onHeadersReceived((details, callback) => {
         const responseHeaders = Object.assign({}, details.responseHeaders);

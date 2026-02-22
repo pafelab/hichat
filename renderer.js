@@ -166,8 +166,8 @@ function updateLanguage(lang) {
     }
 
     // Launch Btns
-    launchBtn.innerText = t.btnOpenNew;
-    if (launchAllBtn) launchAllBtn.innerText = t.btnOpenAll;
+    if (launchBtn) launchBtn.innerText = t.btnOpenNew || "🚀 Open New";
+    if (launchAllBtn) launchAllBtn.innerText = t.btnOpenAll || "🚀 Open All";
 
     // Delete Btn
     if (deleteSourceBtn) deleteSourceBtn.innerText = t.btnDelete;

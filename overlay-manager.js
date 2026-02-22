@@ -28,6 +28,11 @@ ipcRenderer.on('toggle-edit-mode', (event, active) => {
     }
 
     renderSources(false); // Re-render to show/hide handles, preserve content
+
+    // Fix: Force reset mouse events when edit mode is disabled to prevent blocking
+    if (!active) {
+        ipcRenderer.send('set-ignore-mouse', true, { forward: true });
+    }
 });
 
 ipcRenderer.on('toggle-menu', () => {
@@ -76,6 +81,7 @@ function renderSources(updateContent = true) {
             webview.src = source.url;
             webview.setAttribute('allowpopups', 'yes');
             webview.setAttribute('webpreferences', 'contextIsolation=no'); // Assuming we want some access, or strictly isolated?
+            webview.setAttribute('partition', 'persist:source-' + source.id);
 
             // Set preload script for robust audio control
             const preloadPath = path.join(__dirname, 'webview-audio-injector.js');
@@ -255,10 +261,9 @@ function renderSources(updateContent = true) {
                 }
             });
             wrapper.addEventListener('mouseleave', () => {
-                const isInteractive = wrapper.classList.contains('interactive') || wrapper.classList.contains('editing');
-                if (isInteractive) {
-                    ipcRenderer.send('set-ignore-mouse', true, { forward: true });
-                }
+                // Always reset to ignore mouse (click-through) when leaving a wrapper
+                // This prevents getting stuck in interactive mode if state changes
+                ipcRenderer.send('set-ignore-mouse', true, { forward: true });
             });
 
             // Drag Events

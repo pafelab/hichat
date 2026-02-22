@@ -278,9 +278,8 @@ autoUpdater.on('update-downloaded', (info) => {
 
 // App Lifecycle
 
-app.whenReady().then(() => {
-    // Headers stripping for iframe/webview compatibility
-    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+function configureSession(sess) {
+    sess.webRequest.onHeadersReceived((details, callback) => {
         const responseHeaders = Object.assign({}, details.responseHeaders);
         const headersToDelete = [
             'x-frame-options',
@@ -294,6 +293,16 @@ app.whenReady().then(() => {
             }
         });
         callback({ cancel: false, responseHeaders });
+    });
+}
+
+app.whenReady().then(() => {
+    // Headers stripping for iframe/webview compatibility
+    configureSession(session.defaultSession);
+
+    // Apply to any new sessions (e.g. from partitions)
+    app.on('session-created', (sess) => {
+        configureSession(sess);
     });
 
     createConfigWindow();

@@ -588,6 +588,30 @@ if (window.api) {
     window.api.on('load-settings', (data) => {
         if (data.sources) {
             sources = data.sources;
+
+            // Auto-Cascade Fix: Check if multiple sources are at default position (50,50)
+            // and apply an offset to make them visible individually.
+            let needsUpdate = false;
+            let cascadeCount = 0;
+            const seenPositions = new Set();
+
+            sources.forEach(s => {
+                // Heuristic: If exactly at 50,50 (default)
+                if (s.x === 50 && s.y === 50) {
+                    if (cascadeCount > 0) {
+                        const offset = cascadeCount * 20;
+                        s.x += offset;
+                        s.y += offset;
+                        needsUpdate = true;
+                    }
+                    cascadeCount++;
+                }
+            });
+
+            if (needsUpdate) {
+                notifyMain();
+            }
+
             renderSourceList();
         }
         if (data.settings) {

@@ -103,7 +103,8 @@ function createOverlayWindow(settings) {
         webPreferences: {
             nodeIntegration: true, // Required for overlay-manager to require('electron')
             contextIsolation: false,
-            webviewTag: true // Required for <webview>
+            webviewTag: true, // Required for <webview>
+            backgroundThrottling: false // Prevent throttling when not focused
         }
     });
 

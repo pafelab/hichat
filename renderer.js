@@ -14,6 +14,7 @@ const sourceListEl = document.getElementById('source-list');
 const propForm = document.getElementById('properties-form');
 const noSelectionMsg = document.getElementById('no-selection-msg');
 const launchBtn = document.getElementById('launch');
+const launchAllBtn = document.getElementById('launch-all');
 const closeBtn = document.getElementById('close-app');
 const statusEl = document.getElementById('status');
 const launchTipEl = document.getElementById('launch-tip');
@@ -164,8 +165,9 @@ function updateLanguage(lang) {
         items[2].innerHTML = t.tip3;
     }
 
-    // Launch Btn
-    launchBtn.innerText = t.btnLaunch;
+    // Launch Btns
+    launchBtn.innerText = t.btnOpenNew;
+    if (launchAllBtn) launchAllBtn.innerText = t.btnOpenAll;
 
     // Delete Btn
     if (deleteSourceBtn) deleteSourceBtn.innerText = t.btnDelete;
@@ -495,15 +497,22 @@ tabBtns.forEach(btn => {
     });
 });
 
-// Launch Button
-launchBtn.addEventListener('click', () => {
+function handleLaunch() {
     if (sources.length === 0) {
         setStatus('Please add at least one source.', true);
         return;
     }
 
+    const originalLaunchText = launchBtn.innerText;
+    const originalLaunchAllText = launchAllBtn ? launchAllBtn.innerText : '';
+
     launchBtn.disabled = true;
-    launchBtn.innerText = '🚀 Launching...';
+    if (launchAllBtn) launchAllBtn.disabled = true;
+
+    // We use a generic loading text, or we could keep the button text?
+    // User didn't specify loading text behavior, but let's be safe.
+    launchBtn.innerText = '🚀 ...';
+    if (launchAllBtn) launchAllBtn.innerText = '🚀 ...';
 
     if (window.api) {
         window.api.send('launch-overlay', {
@@ -530,9 +539,23 @@ launchBtn.addEventListener('click', () => {
     setStatus('Overlay launched / updated!');
     setTimeout(() => {
         launchBtn.disabled = false;
-        launchBtn.innerText = '🚀 Launch / Update Overlay';
+        if (launchAllBtn) launchAllBtn.disabled = false;
+
+        // Restore text based on current language
+        const t = (key) => {
+             const lang = globalSettings.language || 'en';
+             return translations[lang] ? (translations[lang][key] || translations['en'][key]) : translations['en'][key];
+        };
+        launchBtn.innerText = t('btnOpenNew');
+        if (launchAllBtn) launchAllBtn.innerText = t('btnOpenAll');
     }, 2000);
-});
+}
+
+// Launch Buttons
+launchBtn.addEventListener('click', handleLaunch);
+if (launchAllBtn) {
+    launchAllBtn.addEventListener('click', handleLaunch);
+}
 
 if (closeBtn) {
     closeBtn.addEventListener('click', () => {

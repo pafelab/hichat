@@ -497,27 +497,42 @@ tabBtns.forEach(btn => {
     });
 });
 
-function handleLaunch() {
+function handleLaunch(type) {
+    // type: 'all' or 'new'
     if (sources.length === 0) {
         setStatus('Please add at least one source.', true);
         return;
     }
 
+    let payloadSources = sources;
+    let isTemporary = false;
+
+    if (type === 'new') {
+        if (!selectedSourceId) {
+            setStatus('Please select a source to open.', true);
+            return;
+        }
+        const source = sources.find(s => s.id === selectedSourceId);
+        if (source) {
+            payloadSources = [source];
+            isTemporary = true;
+        }
+    }
+
     const originalLaunchText = launchBtn.innerText;
     const originalLaunchAllText = launchAllBtn ? launchAllBtn.innerText : '';
 
-    launchBtn.disabled = true;
+    if (launchBtn) launchBtn.disabled = true;
     if (launchAllBtn) launchAllBtn.disabled = true;
 
-    // We use a generic loading text, or we could keep the button text?
-    // User didn't specify loading text behavior, but let's be safe.
-    launchBtn.innerText = '🚀 ...';
+    if (launchBtn) launchBtn.innerText = '🚀 ...';
     if (launchAllBtn) launchAllBtn.innerText = '🚀 ...';
 
     if (window.api) {
         window.api.send('launch-overlay', {
-            sources,
-            settings: globalSettings
+            sources: payloadSources,
+            settings: globalSettings,
+            options: { temporary: isTemporary }
         });
     }
 
@@ -552,9 +567,11 @@ function handleLaunch() {
 }
 
 // Launch Buttons
-launchBtn.addEventListener('click', handleLaunch);
+if (launchBtn) {
+    launchBtn.addEventListener('click', () => handleLaunch('new'));
+}
 if (launchAllBtn) {
-    launchAllBtn.addEventListener('click', handleLaunch);
+    launchAllBtn.addEventListener('click', () => handleLaunch('all'));
 }
 
 if (closeBtn) {

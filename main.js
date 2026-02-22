@@ -154,8 +154,10 @@ function createOverlayWindow(settings) {
 // --- IPC Handlers ---
 
 ipcMain.on('launch-overlay', (event, data) => {
-    // data = { sources: [], settings: {} }
-    saveConfig(data);
+    // data = { sources: [], settings: {}, options: { temporary: boolean } }
+    if (!data.options || !data.options.temporary) {
+        saveConfig(data);
+    }
 
     // Register Shortcut
     globalShortcut.unregisterAll();

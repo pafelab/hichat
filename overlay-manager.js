@@ -46,26 +46,19 @@ ipcRenderer.on('toggle-sources-visibility', () => {
 // --- Rendering ---
 
 function renderSources(updateContent = true) {
-    // Naive re-render: clear and rebuild.
-    // Optimization: Diffing by ID would be better, but MVP first.
-
-    // existing wrappers
-    const existingWrappers = Array.from(document.querySelectorAll('.source-wrapper'));
-    const existingIds = existingWrappers.map(el => el.dataset.id);
+    // Diffing by ID: Reuse existing wrappers and update only what's changed.
     const newIds = new Set(sources.map(s => s.id));
 
-    // Map for reuse
-    const wrapperMap = new Map();
-    existingWrappers.forEach(el => {
-        if (!newIds.has(el.dataset.id)) {
-            el.remove();
-        } else {
-            wrapperMap.set(el.dataset.id, el);
+    // 1. Cleanup: Remove wrappers that are no longer in the sources list
+    for (const [id, wrapper] of wrapperMap.entries()) {
+        if (!newIds.has(id)) {
+            wrapper.remove();
+            wrapperMap.delete(id);
         }
-    });
+    }
 
-    // Add or Update
-    sources.forEach(source => {
+    // 2. Add or Update
+    sources.forEach((source, index) => {
         let wrapper = wrapperMap.get(source.id);
         let webview;
 
@@ -281,58 +274,105 @@ function renderSources(updateContent = true) {
             }
         }
 
-        // Apply Properties
-        wrapper.style.left = `${source.x}px`;
-        wrapper.style.top = `${source.y}px`;
-        wrapper.style.width = `${source.width}px`;
-        wrapper.style.height = `${source.height}px`;
-        wrapper.style.zIndex = source.zIndex;
-        if (source.opacity !== undefined) {
-            wrapper.style.opacity = source.opacity;
+        // Maintain DOM order
+        if (canvas.children[index] !== wrapper) {
+            canvas.insertBefore(wrapper, canvas.children[index] || null);
         }
-        wrapper.dataset.name = source.name || 'Source';
+
+        // Diff and Apply Properties
+        const lastState = wrapper._lastState || {};
+
+        if (lastState.x !== source.x || lastState.y !== source.y) {
+            wrapper.style.left = `${source.x}px`;
+            wrapper.style.top = `${source.y}px`;
+        }
+        if (lastState.width !== source.width || lastState.height !== source.height) {
+            wrapper.style.width = `${source.width}px`;
+            wrapper.style.height = `${source.height}px`;
+        }
+        if (lastState.zIndex !== source.zIndex) {
+            wrapper.style.zIndex = source.zIndex;
+        }
+
+        const opacity = source.opacity !== undefined ? source.opacity : 1.0;
+        if (lastState.opacity !== opacity) {
+            wrapper.style.opacity = opacity;
+            // Update opacity slider if it exists
+            const opacitySlider = wrapper.querySelector('.source-header input[type="range"][title="Opacity"], .source-header div[title="Opacity"] input');
+            if (opacitySlider) opacitySlider.value = Math.round(opacity * 100);
+        }
+
+        if (lastState.name !== source.name) {
+            wrapper.dataset.name = source.name || 'Source';
+            const title = wrapper.querySelector('.source-title');
+            if (title) title.innerText = source.name || 'Source';
+        }
 
         // Apply Zoom dynamically
         if (webview && typeof webview.setZoomFactor === 'function') {
-            try {
-                webview.setZoomFactor(parseFloat(source.zoom || 1.0));
-            } catch (e) { }
+            if (lastState.zoom !== source.zoom) {
+                try {
+                    webview.setZoomFactor(parseFloat(source.zoom || 1.0));
+                    // Update zoom slider
+                    const zoomSlider = wrapper.querySelector('.source-header div[title="Zoom"] input');
+                    if (zoomSlider) zoomSlider.value = Math.round((source.zoom || 1.0) * 100);
+                } catch (e) { }
+            }
         }
 
         // Interactive Mode
-        if (source.interact && !editMode) {
-            wrapper.classList.add('interactive');
-            wrapper.style.pointerEvents = 'auto';
-        } else {
-            wrapper.classList.remove('interactive');
-            // pointer-events handled by css .editing
+        const isInteractive = !!source.interact;
+        if (lastState.interact !== isInteractive || lastState.editMode !== editMode) {
+            if (isInteractive && !editMode) {
+                wrapper.classList.add('interactive');
+                wrapper.style.pointerEvents = 'auto';
+            } else {
+                wrapper.classList.remove('interactive');
+                wrapper.style.pointerEvents = '';
+            }
         }
 
         // Audio Update
         if (webview && source.audio) {
-            webview.setAudioMuted(source.audio.muted);
-            // Robust Volume Update via IPC
-            if (webview.send) {
-                try {
-                    webview.send('set-volume', source.audio.volume / 100);
-                } catch (e) {
-                    // Webview might not be ready yet, handled by dom-ready listener
+            if (lastState.audioMuted !== source.audio.muted) {
+                webview.setAudioMuted(source.audio.muted);
+            }
+            if (lastState.audioVolume !== source.audio.volume) {
+                // Robust Volume Update via IPC
+                if (webview.send) {
+                    try {
+                        webview.send('set-volume', source.audio.volume / 100);
+                    } catch (e) {
+                        // Webview might not be ready yet, handled by dom-ready listener
+                    }
                 }
             }
         }
 
-        // Edit Mode Class
-        if (editMode) {
-            wrapper.classList.add('editing');
-        } else {
-            wrapper.classList.remove('editing');
+        // Edit Mode Class and Header
+        if (lastState.editMode !== editMode) {
+            if (editMode) {
+                wrapper.classList.add('editing');
+            } else {
+                wrapper.classList.remove('editing');
+            }
+
+            // Update Header Visibility
+            const header = wrapper.querySelector('.source-header');
+            if (header) {
+                header.style.display = editMode ? 'flex' : 'none';
+            }
         }
 
-        // Update Header Visibility
-        const header = wrapper.querySelector('.source-header');
-        if (header) {
-            header.style.display = editMode ? 'flex' : 'none';
-        }
+        // Store state for next diff
+        wrapper._lastState = {
+            ...source,
+            opacity: opacity,
+            interact: isInteractive,
+            audioMuted: source.audio ? source.audio.muted : false,
+            audioVolume: source.audio ? source.audio.volume : 100,
+            editMode: editMode
+        };
     });
 }
 

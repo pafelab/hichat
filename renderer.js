@@ -330,27 +330,54 @@ function updateSelectedSourceFromForm() {
 }
 
 function renderSourceList() {
-    sourceListEl.innerHTML = '';
-    sources.forEach((source, index) => {
-        const li = document.createElement('li');
+    const existingNodes = new Map();
+    for (let i = 0; i < sourceListEl.children.length; i++) {
+        const child = sourceListEl.children[i];
+        if (child.dataset.id) {
+            existingNodes.set(child.dataset.id, child);
+        }
+    }
+
+    for (let i = 0; i < sources.length; i++) {
+        const source = sources[i];
+        let li = existingNodes.get(source.id);
+
+        if (!li) {
+            li = document.createElement('li');
+            li.dataset.id = source.id;
+
+            li.innerHTML = `
+                <span class="source-name"></span>
+                <div class="source-actions">
+                    <button class="icon-btn delete-btn" title="Remove">🗑️</button>
+                </div>
+            `;
+
+            li.onclick = () => selectSource(source.id);
+            const delBtn = li.querySelector('.delete-btn');
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                removeSource(source.id);
+            };
+        }
+
         li.className = `source-item ${source.id === selectedSourceId ? 'active' : ''}`;
-        li.dataset.id = source.id;
-        li.onclick = () => selectSource(source.id);
+        li.querySelector('.source-name').innerText = source.name || 'Source';
 
-        li.innerHTML = `
-            <span class="source-name">${source.name || 'Source'}</span>
-            <div class="source-actions">
-                <button class="icon-btn delete-btn" title="Remove">🗑️</button>
-            </div>
-        `;
+        const currentChildAtIndex = sourceListEl.children[i];
+        if (currentChildAtIndex !== li) {
+            if (currentChildAtIndex) {
+                sourceListEl.insertBefore(li, currentChildAtIndex);
+            } else {
+                sourceListEl.appendChild(li);
+            }
+        }
 
-        const delBtn = li.querySelector('.delete-btn');
-        delBtn.onclick = (e) => {
-            e.stopPropagation();
-            removeSource(source.id);
-        };
+        existingNodes.delete(source.id);
+    }
 
-        sourceListEl.appendChild(li);
+    existingNodes.forEach((node) => {
+        sourceListEl.removeChild(node);
     });
 }
 

@@ -23,10 +23,6 @@ const launchTipEl = document.getElementById('launch-tip');
 const propInputs = {
     name: document.getElementById('prop-name'),
     url: document.getElementById('prop-url'),
-    width: document.getElementById('prop-width'),
-    height: document.getElementById('prop-height'),
-    x: document.getElementById('prop-x'),
-    y: document.getElementById('prop-y'),
     muted: document.getElementById('prop-muted'),
     volume: document.getElementById('prop-volume'),
     opacity: document.getElementById('prop-opacity'),
@@ -85,10 +81,6 @@ function updateLanguage(lang) {
     // Explicit updates
     setLabelText('prop-name', t.labelName);
     setLabelText('prop-url', t.labelUrl);
-    setLabelText('prop-width', t.labelWidth);
-    setLabelText('prop-height', t.labelHeight);
-    setLabelText('prop-x', t.labelX);
-    setLabelText('prop-y', t.labelY);
 
     // Mute
     const muteLabel = document.querySelector('#prop-muted').parentNode;
@@ -100,10 +92,6 @@ function updateLanguage(lang) {
 
     updateLabelFor('prop-name', t.labelName);
     updateLabelFor('prop-url', t.labelUrl);
-    updateLabelFor('prop-width', t.labelWidth);
-    updateLabelFor('prop-height', t.labelHeight);
-    updateLabelFor('prop-x', t.labelX);
-    updateLabelFor('prop-y', t.labelY);
 
     // Audio label
     const audioGroup = document.querySelector('#prop-volume').closest('.form-group');
@@ -283,10 +271,6 @@ function selectSource(id) {
 function loadSourceToForm(source) {
     propInputs.name.value = source.name || '';
     propInputs.url.value = source.url || '';
-    propInputs.width.value = source.width || 400;
-    propInputs.height.value = source.height || 600;
-    propInputs.x.value = source.x || 0;
-    propInputs.y.value = source.y || 0;
     propInputs.muted.checked = source.audio?.muted || false;
     propInputs.volume.value = source.audio?.volume || 100;
     document.getElementById('prop-volume-val').innerText = (source.audio?.volume || 100) + '%';
@@ -310,10 +294,6 @@ function updateSelectedSourceFromForm() {
 
     source.name = propInputs.name.value;
     source.url = propInputs.url.value;
-    source.width = parseInt(propInputs.width.value) || 100;
-    source.height = parseInt(propInputs.height.value) || 100;
-    source.x = parseInt(propInputs.x.value) || 0;
-    source.y = parseInt(propInputs.y.value) || 0;
     source.interact = propInputs.interact.checked;
     source.css = propInputs.css.value;
 

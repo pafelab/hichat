@@ -349,7 +349,7 @@ function renderSourceList() {
             li.innerHTML = `
                 <span class="source-name"></span>
                 <div class="source-actions">
-                    <button class="icon-btn delete-btn" title="Remove">🗑️</button>
+                    <button class="icon-btn delete-btn" title="Remove" aria-label="Remove Source">🗑️</button>
                 </div>
             `;
 

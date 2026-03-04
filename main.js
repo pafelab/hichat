@@ -281,17 +281,18 @@ autoUpdater.on('update-downloaded', (info) => {
 
 // App Lifecycle
 
+const HEADERS_TO_DELETE = [
+    'x-frame-options',
+    'content-security-policy',
+    'frame-ancestors',
+    'strict-transport-security'
+];
+
 function configureSession(sess) {
     sess.webRequest.onHeadersReceived((details, callback) => {
         const responseHeaders = Object.assign({}, details.responseHeaders);
-        const headersToDelete = [
-            'x-frame-options',
-            'content-security-policy',
-            'frame-ancestors',
-            'strict-transport-security'
-        ];
         Object.keys(responseHeaders).forEach(header => {
-            if (headersToDelete.includes(header.toLowerCase())) {
+            if (HEADERS_TO_DELETE.includes(header.toLowerCase())) {
                 delete responseHeaders[header];
             }
         });

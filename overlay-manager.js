@@ -183,9 +183,8 @@ function renderSources(updateContent = true) {
             zoomSlider.addEventListener('input', (e) => {
                 const zoom = parseInt(e.target.value) / 100;
                 // Apply zoom
-                const wv = wrapper.querySelector('webview');
-                if (wv && typeof wv.setZoomFactor === 'function') {
-                    try { wv.setZoomFactor(zoom); } catch (e) { }
+                if (webview && typeof webview.setZoomFactor === 'function') {
+                    try { webview.setZoomFactor(zoom); } catch (e) { }
                 }
 
                 // Debounce update to main

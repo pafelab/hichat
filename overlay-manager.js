@@ -32,6 +32,7 @@ ipcRenderer.on('toggle-edit-mode', (event, active) => {
     // Fix: Force reset mouse events when edit mode is disabled to prevent blocking
     if (!active) {
         ipcRenderer.send('set-ignore-mouse', true, { forward: true });
+        document.dispatchEvent(new MouseEvent('mouseup'));
     }
 });
 
